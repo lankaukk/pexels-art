@@ -5,29 +5,18 @@ const PicList = (props) => {
   if (props.pics.length > 0) {
     return (
       <div className="picCard">
-
           {props.pics.map(pic =>     
-              
-              <a key={pic.url} target="_blank" rel="noreferrer" href={pic.photographer_url}>
-            
-              <br></br>
-
-                <img key={pic.url} src={pic.url} alt="pexel"></img>
-                
-                <div className="overlay">
-                  {pic.photographer}
-                </div>
-
-              <br></br>
-
-            </a>
+            <>
+                <div style={{height: '16.6%', width: '16.6%', backgroundColor: pic.avg_color }}></div>
+            </>
           )}
-
       </div>
     )
   } else {
     return (
-      <p>No results for this query.</p>
+      <div className="picCard">
+        <p>This is not Reality.</p>
+      </div>
     )
   }
 }

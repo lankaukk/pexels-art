@@ -12,60 +12,37 @@ class PicListContainer extends Component {
     }
 
     fetchSearched = (query, index) => { 
-          const BASE_URL = `https://api.pexels.com/v1/search?query=${query}&page=${index}&per_page=10`
+          const BASE_URL = `https://api.pexels.com/v1/search?query=${query}&page=${index}&per_page=36`
 
           fetch(BASE_URL, {
           headers: {
             Authorization: API_KEY
           }})
           .then(response => response.json())
-          // .then(result => console.log(result.photos))
+          //.then(result => console.log(result.photos))
           .then(result => {
-
             this.setState({ 
-              pics: result.photos.map( pic => ({ 
-                url: pic.src.original, 
-                photographer: pic.photographer, 
-                photographer_url: pic.photographer_url}) )
-            });
-
-          })
+              pics: result.photos.map( pic => ({         
+                avg_color: pic.avg_color}) )
+              });
+            })
           .catch(err => console.log(err))
 
         // )
         console.log("query:", query, "page:", index)
     }
 
-    fetchCurated = (index = 1) => { 
-      const BASE_URL = `https://api.pexels.com/v1/curated?&page=${index}&per_page=10`
-      fetch(BASE_URL, {
-        headers: {
-        Authorization: API_KEY        
-      }})
-      .then(response => response.json())
-      .then(result => {
-        this.setState({ 
-          pics: result.photos.map( pic => ({               
-            url: pic.src.original,                 
-            photographer: pic.photographer, 
-            photographer_url: pic.photographer_url}) )
-          });
-        })
-      .catch(err => console.log(err))
-    }
-
-    componentDidMount() {
-        this.fetchCurated()
-    }
-
+    
     render() {
         return ( 
-        <div>
-            <PicSearchPaginate 
-                fetchSearched = { this.fetchSearched }
-                fetchCurated = { this.fetchCurated }/> 
+        <div >
+            <div className='iLikeTo'>I like to call this piece...</div>
+            
+            <div className='artcontainer'>
+              <PicList pics = { this.state.pics }/>  
+            </div>
 
-            <PicList pics = { this.state.pics }/>  
+            <PicSearchPaginate fetchSearched = { this.fetchSearched }/> 
         </div>
         )
     }
