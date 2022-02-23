@@ -17,8 +17,8 @@ const PicList = (props) => {
           {props.pics.map(pic =>     
             <>
                 <div 
-                onMouseEnter={changeSize}
-                onMouseLeave={removeSize}
+                // onMouseEnter={changeSize}
+                // onMouseLeave={removeSize}
                 className='pexel'
                 style={{height: '16.6%', width: '16.6%', backgroundColor: pic.avg_color }}></div>
             </>
