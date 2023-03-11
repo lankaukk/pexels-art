@@ -4,9 +4,7 @@ import PicListContainer from "../containers/PicListContainer";
 const App = () => {
   return (
     <div>
-      
       <PicListContainer />
-      
     </div>
   );
 };
