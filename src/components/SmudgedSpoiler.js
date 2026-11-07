@@ -8,6 +8,7 @@ const INK = "#6b6b6b"; // the page text's own grey
 // the un-smudge: one wiping stroke per line of text, right to left
 const UNSMUDGE_LINE_MS = 650; // each line's stroke
 const UNSMUDGE_STAGGER_MS = 420; // the next line's stroke starts this soon after
+const RUB_EM = 1.6; // rub-to-reveal eraser width, in letter heights
 const STORAGE_KEY = "spoilerStrokes"; // studio strokes, kept in this browser
 
 // open the page with #studio to smudge the spoiler yourself
@@ -367,7 +368,90 @@ const SmudgedSpoiler = ({ text }) => {
     requestAnimationFrame(step);
   };
 
+  // --- rub to reveal: dragging over the smudge wipes it away where you rub ---
+
+  const rubRef = useRef(null); // { last, moved } while a rub is underway
+  const rubbedRef = useRef(false); // the pointer dragged, so the click isn't a tap
+  const rubTools = useRef(null);
+
+  // a soft round eraser that paints the clean text back through a feathered mask
+  const rubAt = (point) => {
+    const canvas = canvasRef.current;
+    const clean = cleanRef.current;
+    if (!canvas || !clean) return;
+    const size = Math.round(geometry.current.em * RUB_EM);
+    if (!rubTools.current || rubTools.current.size !== size) {
+      const dab = document.createElement("canvas");
+      dab.width = dab.height = size;
+      const mask = document.createElement("canvas");
+      mask.width = mask.height = size;
+      const maskCtx = mask.getContext("2d");
+      const r = size / 2;
+      const falloff = maskCtx.createRadialGradient(r, r, 0, r, r, r);
+      falloff.addColorStop(0, "rgba(0, 0, 0, 1)");
+      falloff.addColorStop(0.6, "rgba(0, 0, 0, 0.7)");
+      falloff.addColorStop(1, "rgba(0, 0, 0, 0)");
+      maskCtx.fillStyle = falloff;
+      maskCtx.fillRect(0, 0, size, size);
+      rubTools.current = { size, dab, dabCtx: dab.getContext("2d"), mask };
+    }
+    const { dab, dabCtx, mask } = rubTools.current;
+    const left = point.x - size / 2;
+    const top = point.y - size / 2;
+    dabCtx.globalCompositeOperation = "copy";
+    dabCtx.drawImage(clean, left, top, size, size, 0, 0, size, size);
+    dabCtx.globalCompositeOperation = "destination-in";
+    dabCtx.drawImage(mask, 0, 0);
+    const ctx = canvas.getContext("2d");
+    ctx.globalAlpha = 0.9;
+    ctx.drawImage(dab, left, top);
+    ctx.globalAlpha = 1;
+  };
+
+  const canRub = usesCanvas && !studio && !revealed;
+
+  const handleRubDown = (event) => {
+    if (!canRub) return;
+    rubbedRef.current = false;
+    rubRef.current = { last: pointFrom(event), startX: event.clientX, startY: event.clientY };
+    try {
+      event.currentTarget.setPointerCapture(event.pointerId);
+    } catch (err) {}
+  };
+
+  const handleRubMove = (event) => {
+    const rub = rubRef.current;
+    if (!rub) return;
+    if (event.pointerType === "mouse" && (event.buttons & 1) === 0) {
+      rubRef.current = null;
+      return;
+    }
+    // a few pixels of slack, so a slightly shaky tap still counts as a tap
+    if (!rubbedRef.current && Math.hypot(event.clientX - rub.startX, event.clientY - rub.startY) < 6) {
+      return;
+    }
+    rubbedRef.current = true;
+    const point = pointFrom(event);
+    const dx = point.x - rub.last.x;
+    const dy = point.y - rub.last.y;
+    const distance = Math.hypot(dx, dy);
+    const spacing = geometry.current.em * RUB_EM * 0.15;
+    for (let d = 0; d <= distance; d += spacing) {
+      rubAt({ x: rub.last.x + (dx * d) / distance || rub.last.x, y: rub.last.y + (dy * d) / distance || rub.last.y });
+    }
+    rub.last = point;
+  };
+
+  const handleRubUp = () => {
+    rubRef.current = null;
+  };
+
   const reveal = () => {
+    // the click that ends a rub isn't a tap
+    if (rubbedRef.current) {
+      rubbedRef.current = false;
+      return;
+    }
     if (studio || revealed) return;
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (usesCanvas && !reduceMotion) unsmudge();
@@ -392,6 +476,11 @@ const SmudgedSpoiler = ({ text }) => {
 
   return (
     <>
+      {canRub && (
+        <span className="spoiler-hint above-smudge" aria-hidden="true">
+          (rub or tap to reveal){" "}
+        </span>
+      )}
       <span
         ref={spanRef}
         className={className}
@@ -400,10 +489,14 @@ const SmudgedSpoiler = ({ text }) => {
           : {
               role: "button",
               tabIndex: 0,
-              title: "Tap to reveal",
+              title: "Rub or tap to reveal",
               "aria-label": "Spoiler, hidden. Press to reveal.",
               onClick: reveal,
               onKeyDown: handleKeyDown,
+              onPointerDown: handleRubDown,
+              onPointerMove: handleRubMove,
+              onPointerUp: handleRubUp,
+              onPointerCancel: handleRubUp,
             })}
       >
         {Array.from(text, (char, i) => (
