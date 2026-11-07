@@ -435,14 +435,33 @@ const SmudgedSpoiler = ({ text }) => {
     return true;
   };
 
+  // outside the paragraph, a rub only starts where the smudge left paint
+  const hasPaintAt = (point) => {
+    const canvas = canvasRef.current;
+    if (point.x < 0 || point.y < 0 || point.x >= canvas.width || point.y >= canvas.height) {
+      return false;
+    }
+    return canvas.getContext("2d").getImageData(Math.floor(point.x), Math.floor(point.y), 1, 1).data[3] > 0;
+  };
+
+  const startsRub = (event) => {
+    const point = pointFrom(event);
+    if (inSpoiler(point)) return true;
+    const paragraph = canvasRef.current.parentElement.getBoundingClientRect();
+    const outside =
+      event.clientX < paragraph.left ||
+      event.clientX > paragraph.right ||
+      event.clientY < paragraph.top ||
+      event.clientY > paragraph.bottom;
+    return outside && hasPaintAt(point);
+  };
+
   const handleRubDown = (event) => {
-    if (!canRub || !inSpoiler(pointFrom(event))) return;
+    if (!canRub || !startsRub(event)) return;
     event.preventDefault();
     rubbedRef.current = false;
+    // listening on the window, the rub keeps following the pointer anywhere
     rubRef.current = { last: pointFrom(event), startX: event.clientX, startY: event.clientY };
-    try {
-      event.currentTarget.setPointerCapture(event.pointerId);
-    } catch (err) {}
   };
 
   const handleRubMove = (event) => {
@@ -476,9 +495,9 @@ const SmudgedSpoiler = ({ text }) => {
     if (wasPress) reveal();
   };
 
-  // the rub listens on the whole paragraph, so pressing between the spoiler's
-  // lines works too; handlersRef keeps the listeners pointing at this render's
-  // handlers
+  // the rub listens on the whole page, so pressing between the spoiler's lines,
+  // or on paint smudged past the paragraph, works too; handlersRef keeps the
+  // listeners pointing at this render's handlers
   const handlersRef = useRef({});
   handlersRef.current = { down: handleRubDown, move: handleRubMove, up: handleRubUp };
   useEffect(() => {
@@ -488,16 +507,16 @@ const SmudgedSpoiler = ({ text }) => {
     const move = (e) => handlersRef.current.move(e);
     const up = (e) => handlersRef.current.up(e);
     area.classList.add("rub-area");
-    area.addEventListener("pointerdown", down);
-    area.addEventListener("pointermove", move);
-    area.addEventListener("pointerup", up);
-    area.addEventListener("pointercancel", up);
+    window.addEventListener("pointerdown", down);
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+    window.addEventListener("pointercancel", up);
     return () => {
       area.classList.remove("rub-area");
-      area.removeEventListener("pointerdown", down);
-      area.removeEventListener("pointermove", move);
-      area.removeEventListener("pointerup", up);
-      area.removeEventListener("pointercancel", up);
+      window.removeEventListener("pointerdown", down);
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      window.removeEventListener("pointercancel", up);
     };
   }, [canRub]);
 
