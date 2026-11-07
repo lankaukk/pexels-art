@@ -40,7 +40,7 @@ const ArtistStatement = () => (
     </p>
 
     <p>
-      No one knows what’s real anymore. Type anything you want into this
+      So I made this artwork of nothing in particular. Type anything you want into this
       caption, and 144 strangers’ photographs are summoned from{" "}
       <SiteLink
         href={PEXELS_URL}
