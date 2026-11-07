@@ -81,7 +81,7 @@ const ArtistStatement = () => {
       >
         Pexels
       </SiteLink>
-      . Each one is rendered as a square in its average color, like a memory
+      , a free stock photo library. Each one is rendered as a square in its average color, like a memory
       you no longer have the storage to load.
     </p>
 
