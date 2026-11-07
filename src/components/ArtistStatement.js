@@ -29,7 +29,7 @@ const ArtistStatement = () => (
       In 1929, René Magritte painted a pipe. Beneath it he wrote something so
       literal that it will confuse you if you aren’t prepared to philosophize.
       “This is not a pipe.” But it is, isn’t it? Looks just like one. But guess
-      what, you can’t smoke it. Because you can’t smoke a painting. Ha. This
+      what, you can’t smoke it. Because unfortunately, my friend, you can’t smoke a painting. Ha. This
       is{" "}
       <ArtworkLink href={LACMA_URL} image="treachery-of-images.jpg">
         The Treachery of Images
@@ -54,7 +54,7 @@ const ArtistStatement = () => (
 
     <p>
       This is image gen without AI. It’s color association without copying.
-      (But the images on Pexels are free to use anyway.) These are real photos
+      Though the images on Pexels are free to use anyway. These are real photos
       by real people, collaged, recycled, and averaged with plain math.
     </p>
 
@@ -110,7 +110,7 @@ const ArtistStatement = () => (
       I was gagged! There I sat, relating to this woman I’d already decided was
       autistic, empathizing with her being so literal that I’d decided it made
       her deceptive only by accident. I, too, let my feelings shape what I think
-      I saw. And that is inherently human.
+      I saw. And that’s on being human.
     </p>
 
     <p>
@@ -120,6 +120,10 @@ const ArtistStatement = () => (
     </p>
 
     <p>All of this to say: nothing matters, so I framed some pixels.</p>
+
+    <p className="statement-date">
+      <time dateTime="2026-11-07T00:22">12:22am Sat November 07, 2026</time>
+    </p>
   </section>
 );
 
