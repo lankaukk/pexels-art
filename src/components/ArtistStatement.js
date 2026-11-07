@@ -25,8 +25,8 @@ const ArtistStatement = () => (
   <section className="statement" aria-label="About the work">
     <p>
       In 1929, René Magritte painted a pipe. Beneath it he wrote something so
-      literal that it will confuse you if you aren’t ready for philosophical
-      thinking. “This is not a pipe.” But, isn’t it? Looks just like one. But
+      literal that it will confuse you if you aren’t prepared to philosophize.
+      “This is not a pipe.” But, isn’t it? Looks just like one. But
       guess what, you can’t smoke it, because you can’t smoke a painting. Ha
       ha. This is{" "}
       <ArtworkLink href={LACMA_URL} image="treachery-of-images.jpg">
