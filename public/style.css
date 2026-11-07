@@ -107,14 +107,16 @@ body {
   --ink-faint: rgba(26, 26, 26, 0.3);
 }
 
-/* the blank and its Enter arrow wrap together. Their combined width is set
-   from .blank-sizer (see PicSearchPaginate.js) and eases between sizes, so the
-   centered caption glides as letters come and go */
+/* holds the blank; its width is set from .blank-sizer (see PicSearchPaginate.js)
+   and eases between sizes, so the centered caption glides as letters come and go */
 .entry {
     display: inline-flex;
     align-items: baseline;
-    gap: 0.05em;
     max-width: 100%;
+    /* pulls back the input's text-indent and right padding, so they only make
+       room for strokes and the cursor, and centering goes by the text itself */
+    margin-left: -0.22em;
+    margin-right: -0.1em;
     transition: width 160ms ease-out;
 }
 
@@ -129,9 +131,6 @@ body {
     display: inline-block;
     flex: none;
     max-width: calc(100vw - 6rem);
-    /* pulls back the input's text-indent, so the indent only makes room for
-       lead-in strokes instead of showing as extra space */
-    margin-left: -0.22em;
 }
 
 /* the example word, faint, starting right where the cursor sits */
@@ -165,7 +164,8 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
     .entry,
-    .example {
+    .example,
+    .enter {
         transition: none;
     }
 }
@@ -193,8 +193,12 @@ body {
     text-indent: 0.22em;
 }
 
+/* hangs just past the end of the text, outside the width that's centered; its
+   bottom sits on the baseline (0.42em above the blank's bottom, less padding) */
 .enter {
-    flex: none;
+    position: absolute;
+    left: calc(100% - 0.05em);
+    bottom: 0.32em;
     /* buttons don't inherit font size, which the arrow's em sizing relies on */
     font-size: inherit;
     padding: 0.1em;
@@ -203,6 +207,13 @@ body {
     color: var(--ink-faint);
     cursor: pointer;
     line-height: 0;
+    transition: opacity 150ms ease-out, color 150ms ease-out;
+}
+
+/* nothing new to make art from: the blank is empty, or unchanged since Enter */
+.enter.is-hidden {
+    opacity: 0;
+    cursor: default;
 }
 
 .enter:hover,

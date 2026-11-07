@@ -14,13 +14,16 @@ class PicSearchPaginate extends Component {
     exampleIndex: 0,
     // how much of the current example is typed out
     typedLength: 0,
+    // the person has typed (or used an example); examples stop until reload
+    takenOver: false,
+    // what the last artwork was made from, so the arrow can hide until it changes
+    submitted: null,
   };
 
   entryRef = createRef();
   blankRef = createRef();
   sizerRef = createRef();
   inputRef = createRef();
-  arrowRef = createRef();
 
   componentDidMount() {
     // focused from the start, so the browser's own cursor blinks in the blank
@@ -68,53 +71,51 @@ class PicSearchPaginate extends Component {
     }
   };
 
-  // the blank is as wide as its text, measured from a hidden copy. The blank and
-  // Enter arrow take their new size at once, so a new letter is never clipped or
-  // tucked under the arrow; the box around them (.entry) eases to match, and the
-  // whole centered caption glides with it
+  // the blank is as wide as its text, measured from a hidden copy. The blank
+  // takes its new size at once, so a new letter is never clipped; the box around
+  // it (.entry) eases to match, and the whole centered caption glides with it.
+  // The Enter arrow hangs off the blank's end, outside the centered width
   sizeBlank = () => {
     const sizer = this.sizerRef.current;
     const blank = this.blankRef.current;
     const entry = this.entryRef.current;
-    const arrow = this.arrowRef.current;
-    if (!sizer || !blank || !entry || !arrow) return;
+    if (!sizer || !blank || !entry) return;
     const fontSize = parseFloat(getComputedStyle(sizer).fontSize);
-    const blankEm = sizer.offsetWidth / fontSize;
-    const gapEm = parseFloat(getComputedStyle(entry).columnGap) / fontSize || 0;
-    const arrowEm = arrow.offsetWidth / fontSize;
-    blank.style.width = `${blankEm.toFixed(3)}em`;
-    entry.style.width = `${(blankEm + gapEm + arrowEm).toFixed(3)}em`;
+    const width = `${(sizer.offsetWidth / fontSize).toFixed(3)}em`;
+    blank.style.width = width;
+    entry.style.width = width;
   };
 
   handleChange = (event) => {
-    const query = event.target.value;
-    this.setState({ query, pageIndex: 1 });
-    if (query === "") {
-      // blank cleared: the example comes back and starts over with a fresh word
-      this.deleting = false;
-      this.setState({ typedLength: 0 });
-      this.scheduleTyping(GAP_MS);
-    } else {
-      // the person took over: the example stops where it is and fades out
-      clearTimeout(this.typingTimer);
-    }
+    // the person took over: the example stops where it is and fades out, and
+    // stays gone until the page is reloaded
+    clearTimeout(this.typingTimer);
+    this.setState({ query: event.target.value, pageIndex: 1, takenOver: true });
   };
 
   handleSubmit = (event) => {
     event.preventDefault();
     // an empty blank makes art from the example being typed, and keeps that
     // word in the blank so the caption matches the artwork
-    const query = this.state.query.trim() || EXAMPLES[this.state.exampleIndex];
-    if (this.state.query === "") {
-      clearTimeout(this.typingTimer);
-      this.setState({ query });
-    }
+    const query = this.state.takenOver
+      ? this.state.query.trim()
+      : EXAMPLES[this.state.exampleIndex];
+    if (!query) return;
+    clearTimeout(this.typingTimer);
+    this.setState({
+      query: this.state.takenOver ? this.state.query : query,
+      takenOver: true,
+      submitted: query,
+    });
     this.props.fetchSearched(query, this.state.pageIndex);
   };
 
   render() {
-    const { query, exampleIndex, typedLength } = this.state;
+    const { query, exampleIndex, typedLength, takenOver, submitted } = this.state;
+    // frozen where it stopped once the person takes over, so it can fade out
     const example = EXAMPLES[exampleIndex].slice(0, typedLength);
+    // the arrow is shown while there's something new to make art from
+    const canSubmit = takenOver ? query.trim() !== "" && query.trim() !== submitted : true;
 
     return (
       <div>
@@ -126,12 +127,12 @@ class PicSearchPaginate extends Component {
           <span className="entry" ref={this.entryRef}>
             <span className="blank" ref={this.blankRef}>
               <span className="blank-sizer" ref={this.sizerRef} aria-hidden="true">
-                {query || example}
+                {takenOver ? query : example}
               </span>
               {/* drawn beside the input instead of as its placeholder, which
                   browsers hide instantly, so it can fade out when typing starts */}
               <span
-                className={query ? "example is-hidden" : "example"}
+                className={takenOver ? "example is-hidden" : "example"}
                 aria-hidden="true"
               >
                 {example}
@@ -148,19 +149,20 @@ class PicSearchPaginate extends Component {
                 className="search"
                 onChange={this.handleChange}
               />
+              {/* the curved "return" arrow from the Enter key, hanging past the
+                  end of the text like hanging punctuation */}
+              <button
+                type="submit"
+                className={canSubmit ? "enter" : "enter is-hidden"}
+                aria-label="Make the artwork"
+                disabled={!canSubmit}
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M20 5v6a4 4 0 0 1-4 4H5" />
+                  <path d="M9 10l-5 5 5 5" />
+                </svg>
+              </button>
             </span>
-            <button
-              type="submit"
-              className="enter"
-              aria-label="Make the artwork"
-              ref={this.arrowRef}
-            >
-              {/* the curved "return" arrow from the Enter key */}
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M20 5v6a4 4 0 0 1-4 4H5" />
-                <path d="M9 10l-5 5 5 5" />
-              </svg>
-            </button>
           </span>
         </form>
       </div>
