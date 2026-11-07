@@ -11,6 +11,14 @@ const SiteLink = ({ href, icon, children }) => (
   </a>
 );
 
+// a link led by a tiny copy of the artwork it names, line-high at its own 4:3 shape
+const ArtworkLink = ({ href, image, children }) => (
+  <a className="site-link" href={href} target="_blank" rel="noopener noreferrer">
+    <img className="artwork-thumb" src={image} alt="" width="20" height="15" />
+    {children}
+  </a>
+);
+
 // the wall text, below the artwork
 const ArtistStatement = () => (
   <section className="statement" aria-label="About the work">
@@ -20,12 +28,9 @@ const ArtistStatement = () => (
       thinking. “This is not a pipe.” But, isn’t it? Looks just like one. But
       guess what, you can’t smoke it, because you can’t smoke a painting. Ha
       ha. This is{" "}
-      <SiteLink
-        href={LACMA_URL}
-        icon="https://collections.lacma.org/favicon.ico?favicon.3a5fa5de.ico"
-      >
+      <ArtworkLink href={LACMA_URL} image="treachery-of-images.jpg">
         The Treachery of Images
-      </SiteLink>
+      </ArtworkLink>
       , and a century later I’m still afflicted by its absurd, wildly unfair
       truth: a picture of a thing is never the thing, and everywhere we scroll
       these days that is true on a whole new level.
