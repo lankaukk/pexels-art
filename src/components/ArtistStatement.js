@@ -26,9 +26,9 @@ const ArtistStatement = () => (
     <p>
       In 1929, René Magritte painted a pipe. Beneath it he wrote something so
       literal that it will confuse you if you aren’t prepared to philosophize.
-      “This is not a pipe.” But, isn’t it? Looks just like one. But
-      guess what, you can’t smoke it, because you can’t smoke a painting. Ha
-      ha. This is{" "}
+      “This is not a pipe.” But it is, isn’t it? Looks just like one. But guess
+      what, you can’t smoke it. Because you can’t smoke a painting. Ha. This
+      is{" "}
       <ArtworkLink href={LACMA_URL} image="treachery-of-images.jpg">
         The Treachery of Images
       </ArtworkLink>
