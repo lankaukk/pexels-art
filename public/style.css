@@ -306,3 +306,47 @@ body {
     box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.12);
     vertical-align: -0.1em;
 }
+
+/* spoiler hidden under a smudge of its own ink: each letter is transparent and
+   only its smeared, blurred shadow shows. When revealed, every letter fades in
+   at its own random moment (--delay) while its smudge fades to nothing */
+.spoiler {
+    --smudge: rgba(107, 107, 107, 0.55);
+    cursor: pointer;
+    user-select: none;
+    border-radius: 3px;
+}
+
+.spoiler:focus-visible {
+    outline: 1px dashed #6b6b6b;
+    outline-offset: 2px;
+}
+
+.spoiler-char {
+    color: transparent;
+    text-shadow:
+        4px 0 5px var(--smudge),
+        -3px 0 6px var(--smudge),
+        0 0 4px var(--smudge);
+}
+
+.spoiler.is-revealed {
+    cursor: auto;
+    user-select: auto;
+}
+
+.spoiler.is-revealed .spoiler-char {
+    color: inherit;
+    text-shadow:
+        4px 0 5px transparent,
+        -3px 0 6px transparent,
+        0 0 4px transparent;
+    transition: color 280ms ease-out, text-shadow 420ms ease-out;
+    transition-delay: var(--delay);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .spoiler.is-revealed .spoiler-char {
+        transition: none;
+    }
+}

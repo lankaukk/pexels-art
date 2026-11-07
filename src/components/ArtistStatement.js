@@ -1,4 +1,5 @@
 import React from "react";
+import SmudgedSpoiler from "./SmudgedSpoiler";
 
 const LACMA_URL = "https://collections.lacma.org/object/31931";
 const PEXELS_URL = "https://www.pexels.com/api/";
@@ -64,37 +65,48 @@ const ArtistStatement = () => (
     <h2 className="statement-heading">Does a primary source even exist?</h2>
 
     <p>
-      I recently met someone who genuinely does not believe the Earth is round.
-      His evidence was a theory he’d heard: that Nikon cameras distort what you
-      see through them, and can’t zoom far enough into the distance to show
-      anything disappearing over the horizon. He is 100% wrong. But what
-      surprised me more than his theory was my own surprise. It showed me just
-      how snug my educational bubble really is.
+      I recently met someone who genuinely did not believe the Earth is round.
+      He’d heard some{" "}
+      <SiteLink
+        href="https://www.youtube.com/watch?v=ecfqbWCiZSA&t=11s"
+        icon="https://www.youtube.com/favicon.ico"
+      >
+        theory
+      </SiteLink>{" "}
+      that Nikon cameras distort what you see through them, and can’t zoom far enough into the distance to show anything
+      disappearing over the horizon. This is 100% false, but I was stunned to
+      meet a flat-earther in real life, and that impressed me! At the risk of
+      sounding snobbish, I really live in an educational bubble.
     </p>
 
     <p>
-      Then, the other night, I went to see Nathan Fielder and Lance Oppenheim’s
-      documentary about Elizabeth Holmes,{" "}
+      More recently, I went to see Nathan Fielder’s documentary about Elizabeth
+      Holmes,{" "}
       <SiteLink
         href={DOCUMENTARY_URL}
         icon="https://www.imdb.com/favicon.ico"
       >
         You Can See Everything
       </SiteLink>
-      . I watched every detail, eagerly trying to form my own opinion on the
-      whole controversy. Partway through, Nathan brings in another perspective,
-      Amanda Seyfried’s, which reframes the theories he’s been building. (A
-      really cool move for a documentary, by the way.)
+      . I watched every detail, excitedly trying to form my own opinion on the
+      controversy. Partway through, Nathan brings in another perspective from
+      Amanda Seyfried, which reframes the theories he’s been building. (A really
+      cool move for a documentary, by the way.)
     </p>
 
     <p>
-      Spoiler alert: near the end, Amanda essentially asks Nathan whether his
-      own subconscious feelings toward Elizabeth are clouding his ability to
-      decide, objectively, whether she’s guilty. I was gagged. There I sat,
-      relating to Elizabeth, empathizing with how literal she seemed. She was so
-      literal that I’d decided it made her deceptive only by accident, though
-      still in an awfully harmful way. I had let my feelings shape what I
-      thought I saw, too.
+      Spoiler alert:{" "}
+      <SmudgedSpoiler
+        text={
+          "In the end, Amanda essentially asks Nathan whether his own " +
+          "subconscious feelings toward Elizabeth are clouding his ability to " +
+          "decide, objectively, whether she’s guilty. I was gagged! There I " +
+          "sat, relating to this clearly autistic woman, empathizing with her " +
+          "being so literal that I’d decided it made her deceptive only by " +
+          "accident, though still in an awfully harmful way. I, too, let my " +
+          "feelings shape what I thought I saw. And that is inherently human."
+        }
+      />
     </p>
 
     <p>
