@@ -92,7 +92,7 @@ const ArtistStatement = () => (
       . I watched every detail, excitedly trying to form my own opinion on the
       controversy. Partway through, Nathan brings in another perspective from
       Amanda Seyfried, which reframes the theories he’s been building. (A really
-      cool move for a documentary, by the way.)
+      cool move for a documentary, I must say.)
     </p>
 
     <p>
