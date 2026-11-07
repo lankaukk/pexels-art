@@ -62,7 +62,7 @@ const ArtistStatement = () => (
       precious, nor completely original. And that’s a statement I’d frame.
     </p>
 
-    <h2 className="statement-heading">Does a primary source even exist?</h2>
+    <h2 className="statement-heading" lang="fr">Ceci n’est pas la vérité</h2>
 
     <p>
       I recently met someone who genuinely did not believe the Earth is round.
