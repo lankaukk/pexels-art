@@ -11,6 +11,9 @@ const TYPE_MS = 90; // per letter typed
 const HOLD_MS = 5500;
 const DELETE_MS = 50; // per letter deleted
 const GAP_MS = 300; // empty blank before the next word
+// after someone smudges an example's artwork, the examples wait at least this
+// long past their last stroke before moving on
+const SMUDGE_HOLD_MS = 4000;
 
 class PicSearchPaginate extends Component {
   state = {
@@ -49,7 +52,17 @@ class PicSearchPaginate extends Component {
 
   scheduleTyping = (delay) => {
     clearTimeout(this.typingTimer);
+    this.nextStepAt = Date.now() + delay;
     this.typingTimer = setTimeout(this.stepTyping, delay);
+  };
+
+  // called on every smudge stroke: the typist pauses where it is and resumes
+  // SMUDGE_HOLD_MS after the last stroke (or when it was due anyway, if later),
+  // so the artwork isn't replaced while someone is still playing with it
+  holdForSmudge = () => {
+    if (this.state.takenOver) return;
+    const remaining = (this.nextStepAt || 0) - Date.now();
+    this.scheduleTyping(Math.max(remaining, SMUDGE_HOLD_MS));
   };
 
   // one keystroke of the fake typist: add a letter, hold, delete a letter,

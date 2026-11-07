@@ -277,6 +277,7 @@ class PicList extends Component {
     this.pressure = this.pressureScale(event);
     this.lastPoint = this.canvasPoint(event);
     this.pickUp(this.lastPoint);
+    if (this.props.onSmudge) this.props.onSmudge();
   };
 
   handlePointerMove = (event) => {
@@ -295,6 +296,7 @@ class PicList extends Component {
       this.dabAt({ x: this.lastPoint.x + dx * t, y: this.lastPoint.y + dy * t });
     }
     const used = travelled - spacing;
+    if (used > 0 && this.props.onSmudge) this.props.onSmudge();
     if (used > 0) {
       this.lastPoint = {
         x: this.lastPoint.x + (dx * used) / distance,

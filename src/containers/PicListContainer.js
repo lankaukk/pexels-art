@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { Component, createRef } from "react";
 import PicList from "../components/PicList";
 import PicSearchPaginate from "../components/PicSearchPaginate";
 
@@ -32,14 +32,22 @@ class PicListContainer extends Component {
     this.setState({ pics: colors.map((avg_color) => ({ avg_color })) });
   };
 
+  searchRef = createRef();
+
+  // someone is smudging: an example's artwork should stay up a while longer
+  handleSmudge = () => {
+    if (this.searchRef.current) this.searchRef.current.holdForSmudge();
+  };
+
   render() {
     return (
       <div className="piece">
         <div className="artcontainer">
-          <PicList pics={this.state.pics} />
+          <PicList pics={this.state.pics} onSmudge={this.handleSmudge} />
         </div>
 
         <PicSearchPaginate
+          ref={this.searchRef}
           fetchSearched={this.fetchSearched}
           showExampleArt={this.showExampleArt}
         />
