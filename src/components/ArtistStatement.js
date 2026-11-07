@@ -59,7 +59,7 @@ const ArtistStatement = () => (
 
     <p>
       Imagine anything, smudge it, paint over it, forget about it. Nothing is
-      precious, nor completely original. And that’s a statement I’d frame.
+      precious. Nothing is original.
     </p>
 
     <h2 className="statement-heading" lang="fr">Ceci n’est pas la vérité</h2>
@@ -113,10 +113,9 @@ const ArtistStatement = () => (
     <p>
       Whether it’s an algorithm, our emotions, a camera lens, or the limits of
       how much detail technology can capture, something always stands between
-      us and the thing itself. So who’s to say anything is a primary source
-      anymore? Even metadata, the data meant to tell the truth about our data,
-      was invented by people with a limited understanding of what truth even
-      is.
+      us and the thing itself. So who knows what’s real anymore? Even the
+      concept of metadata was invented by people with a limited understanding
+      of what truth even is.
     </p>
 
     <p>
