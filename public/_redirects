@@ -1,1 +1,6 @@
-/* /index.html 200
+# the piece lives at /notapipe; the site's root (mckayla.com, for now) sends
+# visitors there. Files under /notapipe are served from the site's root, and
+# any other /notapipe address falls back to the app.
+/              /notapipe       301!
+/notapipe      /index.html     200
+/notapipe/*    /:splat         200

@@ -64,7 +64,7 @@ const ArtistStatement = () => {
       “This is not a pipe.” But it is, isn’t it? Looks just like one. But guess
       what, you can’t smoke it. Because unfortunately, my friend, you can’t smoke a painting. <TextEffect effect="big">Ha.</TextEffect> This
       is{" "}
-      <ArtworkLink href={LACMA_URL} image="treachery-of-images.jpg">
+      <ArtworkLink href={LACMA_URL} image={`${process.env.PUBLIC_URL}/treachery-of-images.jpg`}>
         The Treachery of Images
       </ArtworkLink>
       , and a century later I’m still afflicted by this wildly unfair truth: a
