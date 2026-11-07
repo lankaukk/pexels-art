@@ -369,7 +369,7 @@ body {
 
 .ripple-char {
     display: inline-block;
-    animation: ripple 2.4s ease-in-out infinite;
+    animation: ripple 2.4s ease-in-out 1;
     animation-delay: calc(var(--i) * 70ms);
 }
 
@@ -486,7 +486,7 @@ body {
 .effect-char {
     display: inline-block;
     animation-delay: calc(var(--i) * 60ms);
-    animation-iteration-count: infinite;
+    animation-iteration-count: 1;
     animation-timing-function: ease-in-out;
 }
 
@@ -533,4 +533,64 @@ body {
     .effect-char {
         animation: none;
     }
+}
+
+/* each effect plays once on load, and again whenever the word is hovered.
+   Hover switches to an identical copy of the animation, which restarts it */
+.ripple:hover .ripple-char {
+    animation-name: ripple-again;
+}
+
+.effect-bloom:hover .effect-char {
+    animation-name: bloom-again;
+}
+
+.effect-small:hover .effect-char {
+    animation-name: small-again;
+}
+
+@keyframes ripple-again {
+    0%, 30%, 100% { transform: translateY(0); }
+    10% { transform: translateY(-0.28em); }
+    20% { transform: translateY(0.06em); }
+}
+
+@keyframes bloom-again {
+    0%, 40%, 100% { transform: scale(1); text-shadow: 0 0 0 rgba(107, 107, 107, 0); }
+    18% { transform: scale(1.18); text-shadow: 0 0 0.35em rgba(107, 107, 107, 0.55); }
+}
+
+@keyframes small-again {
+    0%, 60%, 100% { transform: scale(1); }
+    15%, 40% { transform: scale(0.72); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ripple:hover .ripple-char,
+    .effect:hover .effect-char {
+        animation: none;
+    }
+}
+
+/* big: the word swells well past its size, holds a beat, then settles; the
+   whole word grows from its baseline so the line doesn't jump */
+.effect-big .effect-char {
+    transform-origin: 50% 85%;
+    animation-name: big;
+    animation-duration: 1.8s;
+    animation-delay: 0ms;
+}
+
+.effect-big:hover .effect-char {
+    animation-name: big-again;
+}
+
+@keyframes big {
+    0%, 100% { transform: scale(1); }
+    25%, 55% { transform: scale(1.7); }
+}
+
+@keyframes big-again {
+    0%, 100% { transform: scale(1); }
+    25%, 55% { transform: scale(1.7); }
 }

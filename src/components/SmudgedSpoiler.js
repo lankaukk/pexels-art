@@ -255,6 +255,23 @@ const SmudgedSpoiler = ({ text }) => {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [studio, undoStroke]);
 
+  // write the strokes into src/spoilerStrokes.json (dev server only), so every
+  // visitor sees this smudge
+  const [saveNote, setSaveNote] = useState("");
+  const saveToSite = async () => {
+    try {
+      const response = await fetch("/__studio/spoiler-strokes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(strokesRef.current),
+      });
+      const result = await response.json();
+      setSaveNote(response.ok ? `Saved ${result.saved} strokes to the site.` : result.error);
+    } catch (err) {
+      setSaveNote("Couldn't save; is npm start running?");
+    }
+  };
+
   const clearStudio = () => {
     strokesRef.current = [];
     try {
@@ -338,6 +355,10 @@ const SmudgedSpoiler = ({ text }) => {
           <button type="button" onClick={clearStudio}>
             Start over
           </button>
+          <button type="button" onClick={saveToSite} disabled={!strokeCount}>
+            Save to site
+          </button>
+          {saveNote && <span className="spoiler-studio-note"> {saveNote}</span>}
         </span>
       )}
     </>
