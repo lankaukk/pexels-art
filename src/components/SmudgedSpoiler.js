@@ -128,6 +128,11 @@ const SmudgedSpoiler = ({ text }) => {
     });
     ctx.clip();
 
+    // the page's white is laid down as paint too, so the brush mixes white and
+    // ink together instead of smearing ink into nothing
+    ctx.fillStyle = getComputedStyle(document.body).backgroundColor || "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
     ctx.fillStyle = g.color;
     ctx.font = g.font;
     ctx.textBaseline = "alphabetic";
