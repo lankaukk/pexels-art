@@ -49,28 +49,49 @@ const ListenToEssay = () => {
 
   useEffect(() => () => supported && window.speechSynthesis.cancel(), [supported]);
 
-  // count spoken time only while actually playing
+  // spoken time, counted only while actually playing (paused time doesn't count)
+  const elapsedRef = useRef(0);
   useEffect(() => {
     if (state !== "playing") return undefined;
     let last = performance.now();
     const timer = setInterval(() => {
       const now = performance.now();
-      setElapsed((e) => e + (now - last) / 1000);
+      elapsedRef.current += (now - last) / 1000;
       last = now;
+      setElapsed(elapsedRef.current);
     }, 250);
     return () => clearInterval(timer);
   }, [state]);
+
+  const rateRef = useRef(1);
+  const [rate, setRate] = useState(1);
+
+  // the remaining time at the current speed, from the voice's measured pace
+  const estimateTotal = (r) => {
+    const remainingChars = r.totalChars - r.done;
+    return elapsedRef.current + (remainingChars * r.secondsPerCharAt1x) / rateRef.current;
+  };
 
   const start = () => {
     const section = buttonRef.current.closest(".statement");
     const sentences = gatherSentences(section);
     const totalChars = sentences.reduce((sum, s) => sum + s.text.length + 1, 0);
     const words = sentences.reduce((sum, s) => sum + s.text.split(/\s+/).length, 0);
-    const voice = pickVoice();
-    reading.current = { sentences, totalChars, done: 0, index: 0, voice, startedAt: null };
+    reading.current = {
+      sentences,
+      totalChars,
+      done: 0,
+      index: 0,
+      voice: pickVoice(),
+      // a first guess at the pace, replaced by the real one as sentences finish
+      secondsPerCharAt1x: ((words / WORDS_PER_MINUTE) * 60) / totalChars,
+      measuredSeconds: 0,
+      measuredChars: 0,
+    };
+    elapsedRef.current = 0;
     setProgress(0);
     setElapsed(0);
-    setTotal((words / WORDS_PER_MINUTE) * 60);
+    setTotal(estimateTotal(reading.current));
     window.speechSynthesis.cancel();
     speakNext();
     setState("playing");
@@ -89,20 +110,24 @@ const ListenToEssay = () => {
     if (sentence.revealsSpoiler) window.dispatchEvent(new Event(SPOILER_EVENT));
     const utterance = new SpeechSynthesisUtterance(sentence.text);
     if (r.voice) utterance.voice = r.voice;
+    // a speed change applies from the next sentence: a voice can't change speed mid-sentence
+    const sentenceRate = rateRef.current;
+    utterance.rate = sentenceRate;
+    const startedAt = elapsedRef.current;
     utterance.onboundary = (event) => {
       setProgress((r.done + event.charIndex) / r.totalChars);
     };
     utterance.onend = () => {
       if (reading.current !== r) return; // stopped or restarted
-      r.done += sentence.text.length + 1;
+      const chars = sentence.text.length + 1;
+      r.done += chars;
       r.index += 1;
-      const fraction = r.done / r.totalChars;
-      setProgress(fraction);
-      // refine the total from the pace so far
-      setElapsed((e) => {
-        if (fraction > 0.05) setTotal(e / fraction);
-        return e;
-      });
+      // learn the voice's real pace, as if it were speaking at 1x
+      r.measuredSeconds += (elapsedRef.current - startedAt) * sentenceRate;
+      r.measuredChars += chars;
+      if (r.measuredChars > 200) r.secondsPerCharAt1x = r.measuredSeconds / r.measuredChars;
+      setProgress(r.done / r.totalChars);
+      setTotal(estimateTotal(r));
       speakNext();
     };
     window.speechSynthesis.speak(utterance);
@@ -127,16 +152,29 @@ const ListenToEssay = () => {
     setElapsed(0);
   };
 
+  const changeRate = (event) => {
+    const next = parseFloat(event.target.value);
+    rateRef.current = next;
+    setRate(next);
+    if (reading.current) setTotal(estimateTotal(reading.current));
+  };
+
   if (!supported) return null;
 
   const active = state !== "idle";
   return (
     <div className={active ? "listen is-active" : "listen"}>
-      <button type="button" className="listen-button" onClick={toggle} ref={buttonRef}>
+      <button
+        type="button"
+        className="listen-button"
+        onClick={toggle}
+        ref={buttonRef}
+        aria-label={state === "idle" ? undefined : state === "playing" ? "Pause" : "Resume"}
+      >
         <span className="listen-icon" aria-hidden="true">
           {state === "playing" ? "❚❚" : "▶"}
         </span>
-        {state === "idle" ? "Listen to this essay" : state === "playing" ? "Pause" : "Resume"}
+        {!active && "Listen to this essay"}
       </button>
       {active && (
         <>
@@ -153,6 +191,18 @@ const ListenToEssay = () => {
           <span className="listen-time">
             {formatTime(elapsed)} / ~{formatTime(Math.max(total, elapsed))}
           </span>
+          <select
+            className="listen-rate"
+            value={rate}
+            onChange={changeRate}
+            aria-label="Playback speed"
+          >
+            {[0.75, 1, 1.25, 1.5, 2].map((r) => (
+              <option key={r} value={r}>
+                {r}×
+              </option>
+            ))}
+          </select>
           <button type="button" className="listen-stop" onClick={stop} aria-label="Stop">
             ■
           </button>

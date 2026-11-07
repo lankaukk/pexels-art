@@ -745,3 +745,66 @@ body {
 .listen .listen-progress {
     max-width: none;
 }
+
+/* while listening, the whole bar is black and holds every control: pause,
+   progress, time, speed and stop */
+.listen.is-active {
+    flex-wrap: nowrap;
+    gap: 0.75rem;
+    padding: 0.55rem 0.9rem;
+    border-radius: 6px;
+    background: #1a1a1a;
+    color: #e6e6e6;
+}
+
+.listen.is-active .listen-button {
+    flex: none;
+    padding: 0.15rem 0.2rem;
+    background: none;
+}
+
+.listen.is-active .listen-button:hover,
+.listen.is-active .listen-button:focus-visible {
+    background: none;
+    color: #ffffff;
+}
+
+.listen.is-active .listen-button:focus-visible,
+.listen.is-active .listen-rate:focus-visible,
+.listen.is-active .listen-stop:focus-visible {
+    outline: 1px solid #ffffff;
+    outline-offset: 2px;
+}
+
+.listen.is-active .listen-progress {
+    flex: 1 1 auto;
+    background: rgba(255, 255, 255, 0.22);
+}
+
+.listen.is-active .listen-progress-fill {
+    background: #ffffff;
+}
+
+.listen.is-active .listen-time {
+    white-space: nowrap;
+    font-size: 0.78rem;
+}
+
+.listen-rate {
+    padding: 0.1rem 0.15rem;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 4px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-size: 0.75rem;
+    cursor: pointer;
+}
+
+.listen-rate option {
+    color: #1a1a1a;
+}
+
+.listen.is-active .listen-stop:hover {
+    color: #ffffff;
+}
