@@ -51,6 +51,11 @@ class PicList extends Component {
     this.resizeObserver.observe(canvas);
     this.resizeCanvas();
     if (this.props.pics.length > 0) this.reveal();
+    // a stroke ends wherever the button is let go, even off the canvas, and
+    // when the window loses focus mid-stroke
+    window.addEventListener("pointerup", this.handlePointerUp);
+    window.addEventListener("pointercancel", this.handlePointerUp);
+    window.addEventListener("blur", this.handlePointerUp);
   }
 
   componentDidUpdate(prevProps) {
@@ -61,6 +66,9 @@ class PicList extends Component {
     cancelAnimationFrame(this.frame);
     this.resizeObserver.disconnect();
     this.portrait.removeEventListener("change", this.redraw);
+    window.removeEventListener("pointerup", this.handlePointerUp);
+    window.removeEventListener("pointercancel", this.handlePointerUp);
+    window.removeEventListener("blur", this.handlePointerUp);
   }
 
   // --- the grid ---
@@ -283,6 +291,12 @@ class PicList extends Component {
   handlePointerMove = (event) => {
     this.moveRing(event);
     if (!this.lastPoint) return;
+    // the button was let go somewhere this canvas didn't hear about (off the
+    // frame, or in another window): the stroke is over
+    if (event.pointerType === "mouse" && (event.buttons & 1) === 0) {
+      this.handlePointerUp();
+      return;
+    }
     this.pressure = this.pressureScale(event);
     const point = this.canvasPoint(event);
     const dx = point.x - this.lastPoint.x;
@@ -341,6 +355,7 @@ class PicList extends Component {
           onPointerMove={this.handlePointerMove}
           onPointerUp={this.handlePointerUp}
           onPointerCancel={this.handlePointerUp}
+          onLostPointerCapture={this.handlePointerUp}
           onPointerLeave={this.hideRing}
         />
         <div ref={this.ringRef} className="brush-ring" aria-hidden="true" />
