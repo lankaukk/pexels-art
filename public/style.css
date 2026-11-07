@@ -875,3 +875,27 @@ html,
 body {
     overflow-x: clip;
 }
+
+/* the blank is a text area so long text wraps; it looks like a one-line field */
+textarea.search {
+    resize: none;
+    overflow: hidden;
+    line-height: inherit;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+    /* wrapped lines center under the caption, like the rest of it */
+    text-align: center;
+}
+
+/* phones: "Ceci n'est pas une" on its own line and the blank centered below it,
+   so the caption doesn't jump between one and two lines as examples change */
+@media (max-width: 600px) {
+    .title .caption {
+        flex-basis: 100%;
+        text-align: center;
+    }
+}
+
+.link-lead {
+    white-space: nowrap;
+}

@@ -96,22 +96,43 @@ class PicSearchPaginate extends Component {
   // takes its new size at once, so a new letter is never clipped; the box around
   // it (.entry) eases to match, and the whole centered caption glides with it.
   // The Enter arrow hangs off the blank's end, outside the centered width
+  // Text too long for one line wraps: the blank stops at the caption's full
+  // width and grows taller instead
   sizeBlank = () => {
     const sizer = this.sizerRef.current;
     const blank = this.blankRef.current;
     const entry = this.entryRef.current;
-    if (!sizer || !blank || !entry) return;
+    const field = this.inputRef.current;
+    if (!sizer || !blank || !entry || !field) return;
     const fontSize = parseFloat(getComputedStyle(sizer).fontSize);
-    const width = `${(sizer.offsetWidth / fontSize).toFixed(3)}em`;
+    const caption = entry.parentElement;
+    // the widest the blank can be: the caption's own width, plus the indent and
+    // right padding that .entry's margins pull back
+    const maxWidth = parseFloat(getComputedStyle(caption).maxWidth) + 0.32 * fontSize;
+    const widthPx = Math.min(sizer.offsetWidth, maxWidth || Infinity);
+    const width = `${(widthPx / fontSize).toFixed(3)}em`;
     blank.style.width = width;
     entry.style.width = width;
+    // as tall as its lines of text
+    field.style.height = "auto";
+    field.style.height = `${field.scrollHeight}px`;
+  };
+
+  // Enter makes the artwork, rather than starting a new line in the blank
+  handleKeyDown = (event) => {
+    if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
+      event.preventDefault();
+      this.handleSubmit({ preventDefault() {} });
+    }
   };
 
   handleChange = (event) => {
     // the person took over: the example stops where it is and fades out, and
     // stays gone until the page is reloaded
     clearTimeout(this.typingTimer);
-    this.setState({ query: event.target.value, pageIndex: 1, takenOver: true });
+    // the blank is one line of text, even if it wraps: pasted line breaks become spaces
+    const query = event.target.value.replace(/[\r\n]+/g, " ");
+    this.setState({ query, pageIndex: 1, takenOver: true });
   };
 
   handleSubmit = (event) => {
@@ -162,17 +183,19 @@ class PicSearchPaginate extends Component {
               >
                 {example}
               </span>
-              <input
+              {/* a one-row text area rather than an input, so long text wraps
+                  onto more lines instead of scrolling sideways */}
+              <textarea
                 id="title"
                 ref={this.inputRef}
                 aria-label="Title"
-                type="text"
-                size={1}
+                rows={1}
                 autoComplete="off"
                 spellCheck="false"
                 value={query}
                 className="search"
                 onChange={this.handleChange}
+                onKeyDown={this.handleKeyDown}
               />
               {/* the curved "return" arrow from the Enter key, hanging past the
                   end of the text like hanging punctuation */}

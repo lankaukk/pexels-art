@@ -8,19 +8,36 @@ const LACMA_URL = "https://collections.lacma.org/object/31931";
 const PEXELS_URL = "https://www.pexels.com/api/";
 const DOCUMENTARY_URL = "https://www.imdb.com/title/tt45368240/";
 
+// a link's little image stays joined to its first word, so they never wrap
+// apart; the rest of the link can still wrap between words
+const LeadWithImage = ({ image, children }) => {
+  const [first, ...rest] = String(children).split(" ");
+  return (
+    <>
+      <span className="link-lead">
+        {image}
+        {first}
+      </span>
+      {rest.length > 0 && ` ${rest.join(" ")}`}
+    </>
+  );
+};
+
 // a link with the site's own favicon in a small circle just before it
 const SiteLink = ({ href, icon, children }) => (
   <a className="site-link" href={href} target="_blank" rel="noopener noreferrer">
-    <img className="site-icon" src={icon} alt="" width="16" height="16" />
-    {children}
+    <LeadWithImage image={<img className="site-icon" src={icon} alt="" width="16" height="16" />}>
+      {children}
+    </LeadWithImage>
   </a>
 );
 
 // a link led by a tiny copy of the artwork it names, line-high at its own 4:3 shape
 const ArtworkLink = ({ href, image, children }) => (
   <a className="site-link" href={href} target="_blank" rel="noopener noreferrer">
-    <img className="artwork-thumb" src={image} alt="" width="20" height="15" />
-    {children}
+    <LeadWithImage image={<img className="artwork-thumb" src={image} alt="" width="20" height="15" />}>
+      {children}
+    </LeadWithImage>
   </a>
 );
 
