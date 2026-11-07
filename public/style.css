@@ -101,7 +101,7 @@ body {
   font-size: clamp(2.25rem, 6.5vw, 4.5rem);
   word-spacing: 0.15em;
   color: #1a1a1a;
-  /* the writing line, example words and Enter arrow */
+  /* the example words and Enter arrow */
   --ink-faint: rgba(26, 26, 26, 0.3);
 }
 
@@ -179,11 +179,7 @@ body {
     outline: 0;
     border: 0;
     border-radius: 0;
-    /* the writing line sits just under the baseline (0.42em above the bottom
-       of a Sirivennela line), so descenders hang below it like handwriting */
-    --line-weight: 1.5px;
-    background: linear-gradient(var(--ink-faint), var(--ink-faint))
-        no-repeat 0.22em calc(100% - 0.35em) / calc(100% - 0.22em) var(--line-weight);
+    background: transparent;
 
     font: inherit;
     word-spacing: inherit;
@@ -194,10 +190,6 @@ body {
     /* inputs clip typed text at their content edge, and the script's lead-in
        strokes reach 0.21em left of the letter, so indent past them */
     text-indent: 0.22em;
-}
-
-.search:focus {
-    --line-weight: 2.5px;
 }
 
 .search::placeholder {
