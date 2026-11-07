@@ -91,8 +91,10 @@ body {
   justify-content: center;
   gap: 0.3em;
 
-  font-family: 'Petit Formal Script', cursive;
-  font-size: clamp(1.75rem, 5vw, 3.5rem);
+  font-family: 'Sirivennela', cursive;
+  /* Sirivennela runs small and tightly spaced, so size it up and open the word gaps */
+  font-size: clamp(2.25rem, 6.5vw, 4.5rem);
+  word-spacing: 0.15em;
   color: #1a1a1a;
 }
 
@@ -113,8 +115,8 @@ body {
     width: 6em;
     padding: 0 0.15em;
     /* inputs clip typed text at their content edge, and the script's lead-in
-       swashes (j, f, p) reach 0.34em left of the letter, so indent past them */
-    text-indent: 0.4em;
+       strokes reach about 0.2em left of the letter, so indent past them */
+    text-indent: 0.25em;
 }
 
 .search:focus {
