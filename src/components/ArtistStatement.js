@@ -24,22 +24,21 @@ const ArtistStatement = () => (
       >
         The Treachery of Images
       </SiteLink>
-      , and it has haunted the artist ever since, more or less daily.
+      , and a century later it afflicts me every day.
     </p>
 
     <p>
-      Here the artist leaves the last word blank and hands you the pen. Say{" "}
-      <em>ocean</em>, and a hundred and forty-four strangers’ photographs of the
-      sea are summoned from{" "}
+      In a completely different manner, no one knows what’s real anymore. Here
+      you can type anything into this caption, and 144 strangers’ photographs
+      are summoned from{" "}
       <SiteLink
         href={PEXELS_URL}
         icon="https://static.pexels.com/1/images/meta/pexels-icon.png"
       >
         Pexels
-      </SiteLink>{" "}
-      and each is boiled down to its average color: a whole afternoon of waves
-      becoming a single square, like a memory you can no longer quite picture.
-      They arrive in no particular order. Nobody asked them to line up.
+      </SiteLink>
+      . Each is rendered as a square in its average color, like a memory you no
+      longer have storage for.
     </p>
 
     <p>
@@ -47,18 +46,11 @@ const ArtistStatement = () => (
       machine has dreamed any of this. There is no generative oracle here
       inventing oceans that never were; only real photographs, taken by real
       people, averaged by plain arithmetic until they forget what they showed.
-      That it might be mistaken for the other thing is perhaps the most
-      Magrittean part of all. We have grown so used to pictures arriving from
-      nowhere, made by means we don’t quite understand, that we have stopped
-      asking where they came from, or whether anyone was ever there.
     </p>
 
     <p>
-      And so the gilded frame, that old promise of preciousness, holds a small
-      grid of averages, while outside it the feeds swell with images too
-      plentiful to be worth very much, the visible world quietly going to seed
-      (some have a ruder word for it). You are welcome to smudge it. Nothing in
-      here is precious, which is exactly why it is framed.
+      Imagine anything, smudge it, forget it. Nothing is precious. Frame
+      whatever you want.
     </p>
   </section>
 );
