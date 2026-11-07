@@ -4,17 +4,17 @@ const PicList = (props) => {
   if (props.pics.length > 0) {
     return (
       <div className="picCard">
-        {props.pics.map((pic) => (
-          <>
-            <div
-              className="pexel"
-              style={{
-                height: "16.6%",
-                width: "16.6%",
-                backgroundColor: pic.avg_color,
-              }}
-            ></div>
-          </>
+        {/* 16 columns x 9 rows keeps every pixel square on the 16:9 canvas */}
+        {props.pics.map((pic, index) => (
+          <div
+            key={index}
+            className="pexel"
+            style={{
+              height: `${100 / 9}%`,
+              width: `${100 / 16}%`,
+              backgroundColor: pic.avg_color,
+            }}
+          ></div>
         ))}
       </div>
     );

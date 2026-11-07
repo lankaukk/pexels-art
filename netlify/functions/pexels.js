@@ -9,15 +9,25 @@ exports.handler = async (event) => {
   }
 
   const { query = "", page = "1" } = event.queryStringParameters || {};
-  const url = `https://api.pexels.com/v1/search?query=${encodeURIComponent(query)}&page=${encodeURIComponent(page)}&per_page=36`;
+  // The 16:9 canvas is a 16 x 9 grid of squares: 144 colors. Pexels caps a request
+  // at 80 photos, so each artwork page is two Pexels pages of 72.
+  const pageNumber = Math.max(parseInt(page, 10) || 1, 1);
+  const pexelsPages = [pageNumber * 2 - 1, pageNumber * 2];
+  const urlFor = (p) =>
+    `https://api.pexels.com/v1/search?query=${encodeURIComponent(query)}&page=${p}&per_page=72`;
 
   try {
-    const response = await fetch(url, { headers: { Authorization: apiKey } });
-    const result = await response.json();
+    const responses = await Promise.all(
+      pexelsPages.map((p) => fetch(urlFor(p), { headers: { Authorization: apiKey } }))
+    );
+    const failed = responses.find((response) => !response.ok);
+    const results = await Promise.all(responses.map((response) => response.json()));
     // Only the colors are needed, so only the colors are sent back.
-    const photos = (result.photos || []).map((photo) => ({ avg_color: photo.avg_color }));
+    const photos = results
+      .flatMap((result) => result.photos || [])
+      .map((photo) => ({ avg_color: photo.avg_color }));
     return {
-      statusCode: response.ok ? 200 : response.status,
+      statusCode: failed ? failed.status : 200,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ photos }),
     };
