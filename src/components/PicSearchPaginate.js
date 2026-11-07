@@ -2,7 +2,7 @@ import React, { Component } from "react";
 
 class PicSearchPaginate extends Component {
   state = {
-    query: "  ",
+    query: "",
     pageIndex: 1,
   };
 
@@ -14,10 +14,17 @@ class PicSearchPaginate extends Component {
   render() {
     return (
       <div>
-        <form onSubmit={this.handleSubmit} className="title">
+        <form onSubmit={this.handleSubmit} className="title" lang="fr">
+          {/* a nod to Magritte's "Ceci n'est pas une pipe" */}
+          <label htmlFor="title" className="caption">
+            Ceci n’est pas une
+          </label>
           <input
-            placeholder="Title"
+            id="title"
+            aria-label="Title"
             type="text"
+            autoComplete="off"
+            spellCheck="false"
             value={this.state.query}
             className="search"
             onChange={(event) =>

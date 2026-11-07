@@ -1,3 +1,21 @@
+body {
+  margin: 0;
+  background-color: #ffffff;
+}
+
+/* frame and caption sit together in the middle of the page */
+.piece {
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding: 2rem 1rem;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+}
+
 .change {
   animation: grow 10s ease-in-out forwards;
   /* animation-name: grow; */
@@ -12,22 +30,8 @@
   }
 }
 
-.iLikeTo{
-  font-family: 'Reckless Neue';
-  font-size: 9vw;
-  
-  transform: skew(-0.06turn, 0deg);
-  z-index: -10;
-}
-
 .artcontainer  {
-  width: 80vw;
-  height: 75vh;
-  min-width: 400px;
-  min-height: 400px;
-  margin: auto;
   display: flex;
-  align-items: center;
   justify-content: center;
 }
 
@@ -36,52 +40,84 @@
     flex-wrap: wrap;
     flex-direction: row;
 
-    /* 16:9 canvas; max width keeps the same 500px max height as the old square */
-    width: 80vw;
+    /* 16:9 canvas, capped at the old 500px max height, and short enough
+       to leave room for the caption below it */
+    --canvas-width: min(72vw, 889px, calc((100vh - 14rem) * 16 / 9));
+    --canvas-long-side: var(--canvas-width);
+    width: var(--canvas-width);
     aspect-ratio: 16 / 9;
 
-    min-width: 400px;
-    max-width: 889px;
+    /* gold frame: slicing at its 89px border keeps the corners crisp while the
+       straight edges stretch; thickness is 4.9% of the long side, as in the image */
+    border-style: solid;
+    border-width: calc(var(--canvas-long-side) * 0.049);
+    border-image: url("frame.webp") 89 stretch;
 
     align-content: center;
     justify-content: center;
 
-    background-color: grey;
-    color: white;
+    /* blank canvas before the first artwork */
+    background-color: rgb(202, 174, 129);
 }
 
+/* 16 columns x 9 rows keeps every pixel square on the 16:9 canvas */
+.pexel {
+    width: calc(100% / 16);
+    height: calc(100% / 9);
+}
+
+/* taller-than-wide screens get a 9:16 canvas: the same 144 pixels in the same
+   order, wrapping after 9 columns into 16 rows */
+@media (orientation: portrait) {
+    .picCard {
+        /* 70vw leaves room for the frame, which is much thicker relative to a narrow canvas */
+        --canvas-width: min(70vw, 500px, calc((100vh - 14rem) * 9 / 16));
+        --canvas-long-side: calc(var(--canvas-width) * 16 / 9);
+        aspect-ratio: 9 / 16;
+    }
+
+    .pexel {
+        width: calc(100% / 9);
+        height: calc(100% / 16);
+    }
+}
+
+/* caption in the hand-lettered spirit of Magritte's "Ceci n'est pas une pipe" */
 .title {
   display: flex;
   flex-direction: row;
-  align-items: center;
+  flex-wrap: wrap;
+  align-items: baseline;
   justify-content: center;
+  gap: 0.3em;
+
+  font-family: 'Petit Formal Script', cursive;
+  font-size: clamp(1.75rem, 5vw, 3.5rem);
+  color: #1a1a1a;
+}
+
+.caption {
+    white-space: nowrap;
 }
 
 .search {
     outline: 0;
-    border-width: 0 0 2px;
-    background-color: rgba(255, 255, 255, 0);
+    border: 0;
+    border-bottom: 1.5px solid #1a1a1a;
+    border-radius: 0;
+    background-color: transparent;
 
-    font-size: 9vw;
+    font: inherit;
+    color: inherit;
 
-    position: absolute;
-    bottom:5%;
-    
-    color: black;
-    -webkit-text-stroke-width: 1px;
-    -webkit-text-stroke-color: #ffffff;
-    /* text-shadow: -6px -4px 10px #ffffff; */
-
-    font-family: 'Acumin Pro', Arial, Helvetica, sans-serif;
-    /* font-weight: 300; */
-    text-transform: uppercase;
-
-    text-align: end;
-    padding-right: 5%;
-    width: 100vw;
+    width: 6em;
+    padding: 0 0.15em;
+    /* inputs clip typed text at their content edge, and the script's lead-in
+       swashes (j, f, p) reach 0.34em left of the letter, so indent past them */
+    text-indent: 0.4em;
 }
 
 .search:focus {
-    border-color: black;
-  }
+    border-bottom-width: 2.5px;
+}
 

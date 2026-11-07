@@ -29,9 +29,7 @@ class PicListContainer extends Component {
 
   render() {
     return (
-      <div>
-        <div className="iLikeTo">I like to call this piece...</div>
-
+      <div className="piece">
         <div className="artcontainer">
           <PicList pics={this.state.pics} />
         </div>
