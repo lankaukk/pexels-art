@@ -111,7 +111,7 @@ const ArtistStatement = () => {
       a round-Earther. But I was <RippleText>stunned</RippleText> to meet a flat-earther
       in real life, a type of person I’d only ever heard about. Honestly, I was
       a little impressed by his commitment to not believing anything he couldn’t
-      see for himself. At the risk of sounding snobbish, I really live in an
+      see for himself. At the risk of sounding elitist, I really live in an
       educational bubble.
     </p>
 
