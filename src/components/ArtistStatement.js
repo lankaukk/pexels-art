@@ -57,8 +57,8 @@ const ArtistStatement = () => (
     </p>
 
     <p>
-      Imagine anything, smudge it, forget about it. Nothing is precious. Frame
-      whatever you want.
+      Imagine anything, smudge it, paint over it, forget about it. Nothing is
+      precious, nor completely original. And that’s a statement I’d frame.
     </p>
 
     <h2 className="statement-heading">Does a primary source even exist?</h2>
