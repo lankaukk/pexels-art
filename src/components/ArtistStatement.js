@@ -15,16 +15,19 @@ const SiteLink = ({ href, icon, children }) => (
 const ArtistStatement = () => (
   <section className="statement" aria-label="About the work">
     <p>
-      In 1929, René Magritte painted a pipe, and then wrote something very
-      obvious beneath it: this is not a pipe. It’s only a painting, and
-      unfortunately, you can’t smoke a painting. This is{" "}
+      In 1929, René Magritte painted a pipe, and beneath it wrote something so
+      obvious, so literal, that it catches you off guard: this is not a pipe.
+      Except it is, isn’t it? It looks exactly like one. But unfortunately, you
+      can’t smoke a painting. This is{" "}
       <SiteLink
         href={LACMA_URL}
         icon="https://collections.lacma.org/favicon.ico?favicon.3a5fa5de.ico"
       >
         The Treachery of Images
       </SiteLink>
-      , and a century later it afflicts me every day.
+      , and a century later I’m still afflicted by its absurd, wildly unfair
+      truth: a picture of a thing is never the thing, no matter how badly it
+      wants to be.
     </p>
 
     <p>
