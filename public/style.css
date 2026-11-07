@@ -288,11 +288,11 @@ body {
 
 /* a tiny copy of a painting, as tall as the line of text, at its own 4:3 shape */
 .artwork-thumb {
-    height: 1.25em;
+    height: 0.94em;
     width: auto;
     aspect-ratio: 4 / 3;
     margin-right: 0.3em;
     border-radius: 2px;
     box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.12);
-    vertical-align: -0.3em;
+    vertical-align: -0.1em;
 }
