@@ -36,9 +36,8 @@ body {
 }
 
 .picCard {
-    display: flex;
-    flex-wrap: wrap;
-    flex-direction: row;
+    position: relative;
+    overflow: hidden;
 
     /* 16:9 canvas, capped at the old 500px max height, and short enough that
        the frame (17.4% of the canvas height) plus a two-line caption fit on screen */
@@ -53,25 +52,33 @@ body {
     border-width: calc(var(--canvas-long-side) * 0.049);
     border-image: url("frame.webp") 89 stretch;
 
-    align-content: center;
-    justify-content: center;
-
     /* blank canvas before the first artwork */
     background-color: rgb(202, 174, 129);
 }
 
-/* 16 columns x 9 rows keeps every pixel square on the 16:9 canvas */
-.pexel {
-    width: calc(100% / 16);
-    height: calc(100% / 9);
-    /* each pixel eases into its new color as the artwork paints in */
-    transition: background-color 300ms ease-out;
+/* the artwork itself: 144 pixels drawn as a 16 x 9 grid (9 x 16 in portrait),
+   and smudgeable by dragging (see PicList.js) */
+.picCanvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    /* dragging on the artwork smudges it instead of scrolling the page */
+    touch-action: none;
+    cursor: crosshair;
 }
 
-@media (prefers-reduced-motion: reduce) {
-    .pexel {
-        transition: none;
-    }
+/* faint outline of the smudge brush under the mouse */
+.brush-ring {
+    position: absolute;
+    top: 0;
+    left: 0;
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    border-radius: 50%;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25);
+    pointer-events: none;
+    opacity: 0;
 }
 
 /* taller-than-wide screens get a 9:16 canvas: the same 144 pixels in the same
@@ -82,11 +89,6 @@ body {
         --canvas-width: min(70vw, 500px, calc((100vh - 18rem) / 1.098 * 9 / 16));
         --canvas-long-side: calc(var(--canvas-width) * 16 / 9);
         aspect-ratio: 9 / 16;
-    }
-
-    .pexel {
-        width: calc(100% / 9);
-        height: calc(100% / 16);
     }
 }
 
