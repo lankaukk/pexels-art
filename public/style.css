@@ -21,13 +21,14 @@
 }
 
 .artcontainer  {
-  width: 50vw;
+  width: 80vw;
   height: 75vh;
   min-width: 400px;
   min-height: 400px;
   margin: auto;
   display: flex;
   align-items: center;
+  justify-content: center;
 }
 
 .picCard {
@@ -35,15 +36,13 @@
     flex-wrap: wrap;
     flex-direction: row;
 
-    width: 50vw;
-    height: 50vw;
+    /* 16:9 canvas; max width keeps the same 500px max height as the old square */
+    width: 80vw;
+    aspect-ratio: 16 / 9;
 
     min-width: 400px;
-    min-height: 400px;
+    max-width: 889px;
 
-    max-width: 500px;
-    max-height: 500px;
-    
     align-content: center;
     justify-content: center;
 
