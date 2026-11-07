@@ -73,8 +73,8 @@ const ArtistStatement = () => (
       >
         theory
       </SiteLink>{" "}
-      that Nikon cameras distort what you see through them, and can’t zoom far enough into the distance to show anything
-      disappearing over the horizon. This is 100% false, but I was stunned to
+      that Nikon’s super-zoom cameras can see things that should be hidden
+      behind the curve of the Earth, so the curve must not exist. This is 100% false, but I was stunned to
       meet a flat-earther in real life, and that impressed me! At the risk of
       sounding snobbish, I really live in an educational bubble.
     </p>
