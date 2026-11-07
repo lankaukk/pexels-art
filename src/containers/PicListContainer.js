@@ -27,6 +27,11 @@ class PicListContainer extends Component {
     console.log("query:", query, "page:", index);
   };
 
+  // an example word's saved colors (src/exampleArt.json), shown without a fetch
+  showExampleArt = (colors) => {
+    this.setState({ pics: colors.map((avg_color) => ({ avg_color })) });
+  };
+
   render() {
     return (
       <div className="piece">
@@ -34,7 +39,10 @@ class PicListContainer extends Component {
           <PicList pics={this.state.pics} />
         </div>
 
-        <PicSearchPaginate fetchSearched={this.fetchSearched} />
+        <PicSearchPaginate
+          fetchSearched={this.fetchSearched}
+          showExampleArt={this.showExampleArt}
+        />
       </div>
     );
   }

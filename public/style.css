@@ -64,6 +64,14 @@ body {
 .pexel {
     width: calc(100% / 16);
     height: calc(100% / 9);
+    /* each pixel eases into its new color as the artwork paints in */
+    transition: background-color 300ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pexel {
+        transition: none;
+    }
 }
 
 /* taller-than-wide screens get a 9:16 canvas: the same 144 pixels in the same

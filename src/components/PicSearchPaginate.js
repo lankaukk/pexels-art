@@ -1,9 +1,14 @@
 import React, { Component, createRef } from "react";
+// each example's 144 Pexels colors, fetched once and saved, so the demo
+// paints real artworks without spending any API requests
+import EXAMPLE_ART from "../exampleArt.json";
 
 // ideas typed out in the empty blank, one at a time
 const EXAMPLES = ["pipe", "ocean", "moonlight", "Venus flytrap"];
 const TYPE_MS = 90; // per letter typed
-const HOLD_MS = 1800; // finished word stays up
+// finished word stays up: long enough for its artwork to paint in (2.4s, see
+// PicList.js) and then be looked at
+const HOLD_MS = 5500;
 const DELETE_MS = 50; // per letter deleted
 const GAP_MS = 300; // empty blank before the next word
 
@@ -63,8 +68,11 @@ class PicSearchPaginate extends Component {
         this.scheduleTyping(GAP_MS);
       }
     } else if (typedLength < word.length) {
+      const finished = typedLength + 1 === word.length;
       this.setState({ typedLength: typedLength + 1 });
-      this.scheduleTyping(typedLength + 1 === word.length ? HOLD_MS : TYPE_MS);
+      // the word is "entered": its artwork paints into the frame
+      if (finished) this.props.showExampleArt(EXAMPLE_ART[word]);
+      this.scheduleTyping(finished ? HOLD_MS : TYPE_MS);
     } else {
       this.deleting = true;
       this.scheduleTyping(DELETE_MS);
@@ -97,17 +105,21 @@ class PicSearchPaginate extends Component {
     event.preventDefault();
     // an empty blank makes art from the example being typed, and keeps that
     // word in the blank so the caption matches the artwork
-    const query = this.state.takenOver
-      ? this.state.query.trim()
-      : EXAMPLES[this.state.exampleIndex];
+    const { takenOver, exampleIndex, typedLength } = this.state;
+    const query = takenOver ? this.state.query.trim() : EXAMPLES[exampleIndex];
     if (!query) return;
     clearTimeout(this.typingTimer);
     this.setState({
-      query: this.state.takenOver ? this.state.query : query,
+      query: takenOver ? this.state.query : query,
       takenOver: true,
       submitted: query,
     });
-    this.props.fetchSearched(query, this.state.pageIndex);
+    if (takenOver) {
+      this.props.fetchSearched(query, this.state.pageIndex);
+    } else if (typedLength < query.length) {
+      // the example's art hasn't painted in yet; its saved colors need no fetch
+      this.props.showExampleArt(EXAMPLE_ART[query]);
+    }
   };
 
   render() {
