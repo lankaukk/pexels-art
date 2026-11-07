@@ -808,3 +808,39 @@ body {
 .listen.is-active .listen-stop:hover {
     color: #ffffff;
 }
+
+/* the black bar is one fixed size whether idle or playing: the bar itself is
+   the black box, and the idle button simply fills it */
+.listen,
+.listen.is-active {
+    box-sizing: border-box;
+    flex-wrap: nowrap;
+    height: 2.75rem;
+    padding: 0 0.9rem;
+    border-radius: 6px;
+    background: #1a1a1a;
+    color: #e6e6e6;
+}
+
+.listen:not(.is-active) {
+    padding: 0;
+}
+
+.listen:not(.is-active) .listen-button {
+    flex: 1 1 100%;
+    align-self: stretch;
+    height: 100%;
+    padding: 0 1rem;
+    background: none;
+    border-radius: 6px;
+}
+
+.listen:not(.is-active):hover,
+.listen:not(.is-active):focus-within {
+    background: #333333;
+}
+
+.listen:not(.is-active) .listen-button:hover,
+.listen:not(.is-active) .listen-button:focus-visible {
+    background: none;
+}
