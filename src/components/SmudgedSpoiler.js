@@ -51,7 +51,7 @@ const SmudgedSpoiler = ({ text }) => {
   const measure = useCallback(() => {
     const span = spanRef.current;
     const canvas = canvasRef.current;
-    const box = canvas.parentElement.getBoundingClientRect();
+    const box = canvas.getBoundingClientRect();
     const scale = window.devicePixelRatio || 1;
     const style = getComputedStyle(span);
     const fontSize = parseFloat(style.fontSize);
@@ -112,26 +112,34 @@ const SmudgedSpoiler = ({ text }) => {
     canvas.height = Math.round(g.box.height * g.scale);
     const ctx = canvas.getContext("2d");
 
-    // ink stays within the spoiler's own lines, never over the words around it
-    const lines = new Map();
+    // the spoiler's rows, each painted in the page's white down to the next
+    // row, so the paint is continuous and one line can be dragged into another.
+    // Nothing is clipped: a stroke can carry paint off the edges onto the page
+    const rows = new Map();
     g.chars.forEach((c) => {
       const key = Math.round(c.y);
-      const line = lines.get(key) || { left: c.x, right: c.x + c.w, top: c.y, h: c.h };
-      line.left = Math.min(line.left, c.x);
-      line.right = Math.max(line.right, c.x + c.w);
-      lines.set(key, line);
+      const row = rows.get(key) || { left: c.x, right: c.x + c.w, top: c.y, h: c.h };
+      row.left = Math.min(row.left, c.x);
+      row.right = Math.max(row.right, c.x + c.w);
+      rows.set(key, row);
     });
-    ctx.beginPath();
-    lines.forEach((l) => {
-      const pad = g.em * 0.35;
-      ctx.rect(l.left - pad, l.top - g.em * 0.1, l.right - l.left + pad * 2, l.h + g.em * 0.2);
-    });
-    ctx.clip();
-
-    // the page's white is laid down as paint too, so the brush mixes white and
-    // ink together instead of smearing ink into nothing
+    const sorted = [...rows.values()].sort((a, b) => a.top - b.top);
     ctx.fillStyle = getComputedStyle(document.body).backgroundColor || "#ffffff";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    sorted.forEach((row, n) => {
+      const next = sorted[n + 1];
+      const bottom = next ? next.top : row.top + row.h;
+      // a little extra white at the paragraph's edges, but none where the
+      // spoiler meets the words before and after it on the same line
+      const pad = g.em * 0.35;
+      const padLeft = n === 0 ? 0 : pad;
+      const padRight = n === sorted.length - 1 ? 0 : pad;
+      ctx.fillRect(
+        row.left - padLeft,
+        row.top,
+        row.right - row.left + padLeft + padRight,
+        bottom - row.top
+      );
+    });
 
     ctx.fillStyle = g.color;
     ctx.font = g.font;
