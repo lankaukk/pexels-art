@@ -2,7 +2,7 @@ import React from "react";
 
 const LACMA_URL = "https://collections.lacma.org/object/31931";
 const PEXELS_URL = "https://www.pexels.com/api/";
-const DOCUMENTARY_URL = "https://en.wikipedia.org/wiki/You_Can_See_Everything";
+const DOCUMENTARY_URL = "https://www.imdb.com/title/tt45368240/";
 
 // a link with the site's own favicon in a small circle just before it
 const SiteLink = ({ href, icon, children }) => (
@@ -77,7 +77,7 @@ const ArtistStatement = () => (
       documentary about Elizabeth Holmes,{" "}
       <SiteLink
         href={DOCUMENTARY_URL}
-        icon="https://en.wikipedia.org/static/favicon/wikipedia.ico"
+        icon="https://www.imdb.com/favicon.ico"
       >
         You Can See Everything
       </SiteLink>
