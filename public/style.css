@@ -603,3 +603,14 @@ body {
         animation: none;
     }
 }
+
+/* after the un-smudge the canvas already shows clean text, so the real text
+   takes over at once: no letter-by-letter fade, no canvas fade */
+.spoiler.is-unsmudged .spoiler-char {
+    transition: none;
+}
+
+.spoiler-canvas.is-unsmudged {
+    transition: none;
+    opacity: 0;
+}

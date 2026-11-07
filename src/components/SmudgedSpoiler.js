@@ -5,6 +5,9 @@ import savedStrokes from "../spoilerStrokes.json";
 const REVEAL_MS = 1600; // the last letter starts appearing within this long
 const BRUSH_EM = 2; // smudge brush width, in letter heights
 const INK = "#6b6b6b"; // the page text's own grey
+// the un-smudge: one wiping stroke per line of text, left to right
+const UNSMUDGE_LINE_MS = 650; // each line's stroke
+const UNSMUDGE_STAGGER_MS = 420; // the next line's stroke starts this soon after
 const STORAGE_KEY = "spoilerStrokes"; // studio strokes, kept in this browser
 
 // open the page with #studio to smudge the spoiler yourself
@@ -35,6 +38,10 @@ const SmudgedSpoiler = ({ text }) => {
   const brushRef = useRef(null);
   const currentStroke = useRef(null);
   const geometry = useRef(null);
+  // the text as it looks unsmudged, and the rows it sits on, for the un-smudge
+  const cleanRef = useRef(null);
+  const rowsRef = useRef([]);
+  const [unsmudged, setUnsmudged] = useState(false);
   // every stroke so far (saved, plus new ones made in the studio); render()
   // replays these
   const strokesRef = useRef(strokes);
@@ -144,8 +151,22 @@ const SmudgedSpoiler = ({ text }) => {
       );
     });
 
+    // the clean copy starts from the same white rows; it gets the letters exactly
+    // as the page draws them (no extra outline), so the hand-off at the end of
+    // the un-smudge to the real text is seamless
+    const clean = document.createElement("canvas");
+    clean.width = canvas.width;
+    clean.height = canvas.height;
+    const cleanCtx = clean.getContext("2d");
+    cleanCtx.drawImage(canvas, 0, 0);
+    cleanRef.current = clean;
+    rowsRef.current = sorted;
+
     ctx.fillStyle = INK;
     ctx.font = g.font;
+    cleanCtx.fillStyle = INK;
+    cleanCtx.font = g.font;
+    cleanCtx.textBaseline = "alphabetic";
     ctx.textBaseline = "alphabetic";
     ctx.strokeStyle = INK;
     ctx.lineWidth = g.em * 0.06;
@@ -157,6 +178,7 @@ const SmudgedSpoiler = ({ text }) => {
       const baseline =
         c.y + (c.h + probe.fontBoundingBoxAscent - probe.fontBoundingBoxDescent) / 2;
       ctx.fillText(c.char, c.x, baseline);
+      cleanCtx.fillText(c.char, c.x, baseline);
       // a hairline outline in the same grey makes the letters a touch heavier,
       // so there's more ink than white to smudge
       ctx.strokeText(c.char, c.x, baseline);
@@ -283,8 +305,73 @@ const SmudgedSpoiler = ({ text }) => {
 
   // --- the reveal ---
 
+  // un-smudge: each line gets one stroke, left to right, that wipes the smudge
+  // back to clean letters. A line's stroke covers the full width and everything
+  // from its top to the next line's (the first and last reach the canvas edges),
+  // so paint that ran off the edges is wiped up too. Then the real text takes over
+  const unsmudge = () => {
+    const canvas = canvasRef.current;
+    const clean = cleanRef.current;
+    const rows = rowsRef.current;
+    if (!canvas || !clean || !rows.length) {
+      setRevealed(true);
+      return;
+    }
+    const ctx = canvas.getContext("2d");
+    const bands = rows.map((row, n) => ({
+      top: n === 0 ? 0 : Math.floor(row.top),
+      bottom: n === rows.length - 1 ? canvas.height : Math.ceil(rows[n + 1].top) + 1,
+      wiped: 0,
+    }));
+    const feather = geometry.current.em * 1.5;
+    const start = performance.now();
+    const step = (now) => {
+      let done = true;
+      bands.forEach((band, n) => {
+        const t = (now - start - n * UNSMUDGE_STAGGER_MS) / UNSMUDGE_LINE_MS;
+        if (t <= 0) {
+          done = false;
+          return;
+        }
+        const eased = 1 - Math.pow(1 - Math.min(1, t), 2);
+        const x = eased * (canvas.width + feather);
+        const height = band.bottom - band.top;
+        // fully clean behind the stroke...
+        if (x > band.wiped) {
+          ctx.save();
+          ctx.globalCompositeOperation = "copy";
+          ctx.beginPath();
+          ctx.rect(band.wiped, band.top, x - band.wiped, height);
+          ctx.clip();
+          ctx.drawImage(clean, 0, 0);
+          ctx.restore();
+          band.wiped = x;
+        }
+        // ...and a soft leading edge just ahead of it
+        ctx.save();
+        ctx.globalAlpha = 0.35;
+        ctx.beginPath();
+        ctx.rect(x, band.top, feather, height);
+        ctx.clip();
+        ctx.drawImage(clean, 0, 0);
+        ctx.restore();
+        if (t < 1) done = false;
+      });
+      if (done) {
+        setUnsmudged(true);
+        setRevealed(true);
+      } else {
+        requestAnimationFrame(step);
+      }
+    };
+    requestAnimationFrame(step);
+  };
+
   const reveal = () => {
-    if (!studio) setRevealed(true);
+    if (studio || revealed) return;
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (usesCanvas && !reduceMotion) unsmudge();
+    else setRevealed(true);
   };
 
   const handleKeyDown = (event) => {
@@ -298,6 +385,7 @@ const SmudgedSpoiler = ({ text }) => {
     "spoiler",
     usesCanvas && "uses-canvas",
     revealed && "is-revealed",
+    unsmudged && "is-unsmudged",
   ]
     .filter(Boolean)
     .join(" ");
@@ -335,6 +423,7 @@ const SmudgedSpoiler = ({ text }) => {
             "spoiler-canvas",
             studio && "is-studio",
             revealed && "is-revealed",
+            unsmudged && "is-unsmudged",
           ]
             .filter(Boolean)
             .join(" ")}
