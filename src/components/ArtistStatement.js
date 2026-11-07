@@ -49,7 +49,7 @@ const ArtistStatement = () => (
     </p>
 
     <p>
-      Imagine anything, smudge it, forget it. Nothing is precious. Frame
+      Imagine anything, smudge it, forget about it. Nothing is precious. Frame
       whatever you want.
     </p>
   </section>
