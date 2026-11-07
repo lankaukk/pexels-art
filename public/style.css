@@ -477,3 +477,60 @@ body {
 .spoiler-canvas {
     z-index: 0;
 }
+
+/* iMessage-style effects on single words (see TextEffect.js) */
+.effect {
+    white-space: nowrap;
+}
+
+.effect-char {
+    display: inline-block;
+    animation-delay: calc(var(--i) * 60ms);
+    animation-iteration-count: infinite;
+    animation-timing-function: ease-in-out;
+}
+
+/* bloom: each letter swells a little and glows, then settles */
+.effect-bloom .effect-char {
+    animation-name: bloom;
+    animation-duration: 3s;
+}
+
+@keyframes bloom {
+    0%,
+    40%,
+    100% {
+        transform: scale(1);
+        text-shadow: 0 0 0 rgba(107, 107, 107, 0);
+    }
+    18% {
+        transform: scale(1.18);
+        text-shadow: 0 0 0.35em rgba(107, 107, 107, 0.55);
+    }
+}
+
+/* small: the words shrink toward the baseline, hold, then grow back */
+.effect-small .effect-char {
+    transform-origin: 50% 85%;
+    animation-name: small;
+    animation-duration: 4s;
+    animation-delay: calc(var(--i) * 25ms);
+}
+
+@keyframes small {
+    0%,
+    60%,
+    100% {
+        transform: scale(1);
+    }
+    15%,
+    40% {
+        transform: scale(0.72);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .effect-char {
+        animation: none;
+    }
+}

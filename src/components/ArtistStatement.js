@@ -1,6 +1,7 @@
 import React from "react";
 import SmudgedSpoiler from "./SmudgedSpoiler";
 import RippleText from "./RippleText";
+import TextEffect from "./TextEffect";
 
 const LACMA_URL = "https://collections.lacma.org/object/31931";
 const PEXELS_URL = "https://www.pexels.com/api/";
@@ -29,7 +30,7 @@ const ArtistStatement = () => (
       In 1929, René Magritte painted a pipe. Beneath it he wrote something so
       literal that it will confuse you if you aren’t prepared to philosophize.
       “This is not a pipe.” But it is, isn’t it? Looks just like one. But guess
-      what, you can’t smoke it. Because unfortunately, my friend, you can’t smoke a painting. Ha. This
+      what, you can’t smoke it. Because unfortunately, my friend, you can’t smoke a painting. <TextEffect effect="bloom">Ha.</TextEffect> This
       is{" "}
       <ArtworkLink href={LACMA_URL} image="treachery-of-images.jpg">
         The Treachery of Images
@@ -121,7 +122,8 @@ const ArtistStatement = () => (
       us and the thing itself. So who knows what’s real anymore?
     </p>
 
-    <p>All of this to say: nothing matters, so I framed some pixels.</p>
+    <p>All of this to say:{" "}
+      <TextEffect effect="small">nothing matters</TextEffect>, so I framed some pixels.</p>
 
     <p className="statement-date">
       <time dateTime="2026-11-07T00:22">12:22am Sat November 07, 2026</time>
