@@ -1,0 +1,9 @@
+[build]
+  command = "npm run build"
+  publish = "build"
+  functions = "netlify/functions"
+
+[build.environment]
+  # react-scripts 4 needs this flag to build on Node 17 and newer.
+  NODE_VERSION = "20"
+  NODE_OPTIONS = "--openssl-legacy-provider"
