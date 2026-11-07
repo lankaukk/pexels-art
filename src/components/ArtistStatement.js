@@ -107,10 +107,12 @@ const ArtistStatement = () => (
           "decide, objectively, whether she’s guilty."
         }
       />{" "}
-      I was gagged! There I sat, relating to this woman I’d already decided was
-      autistic, empathizing with her being so literal that I believe it made
-      her deceptive only by accident. I, too, let my feelings shape what I think
-      I see. And that’s on being human.
+      <span className="above-smudge">
+        I was gagged! There I sat, relating to this woman I’d already decided was
+        autistic, empathizing with her being so literal that I believe it made
+        her deceptive only by accident. I, too, let my feelings shape what I think
+        I see. And that’s on being human.
+      </span>
     </p>
 
     <p>
