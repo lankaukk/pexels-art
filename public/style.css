@@ -117,38 +117,70 @@ body {
     white-space: nowrap;
 }
 
-/* the input and an invisible copy of its text share one grid cell, so the
-   blank is as wide as the words typed, but never shorter than 2.4em */
+/* the blank's width is set from .blank-sizer (see PicSearchPaginate.js) and
+   eases between sizes, so the centered caption glides as letters come and go */
 .blank {
-    display: inline-grid;
-    min-width: 2.4em;
+    position: relative;
+    display: inline-block;
     max-width: 100%;
+    transition: width 160ms ease-out;
 }
 
-.blank::after {
-    content: attr(data-value) " ";
-    grid-area: 1 / 1;
+/* invisible copy of the blank's text, measured for the blank's width */
+.blank-sizer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: max-content;
     visibility: hidden;
     white-space: pre;
-    height: 0;
-    overflow: hidden;
+    pointer-events: none;
     /* matches the input's padding plus text-indent */
     padding: 0 0.15em 0 0.4em;
 }
 
+/* blinking cursor for the empty blank while it isn't focused, placed where
+   the real cursor sits: after the input's padding and text-indent */
+.fake-caret {
+    position: absolute;
+    left: 0.4em;
+    top: 0.15em;
+    bottom: 0.2em;
+    width: 1.5px;
+    background-color: #1a1a1a;
+    pointer-events: none;
+    animation: caret-blink 1.06s steps(1) infinite;
+}
+
+@keyframes caret-blink {
+    50% {
+        opacity: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .blank {
+        transition: none;
+    }
+
+    .fake-caret {
+        animation: none;
+    }
+}
+
 .search {
-    grid-area: 1 / 1;
+    display: block;
     width: 100%;
     min-width: 0;
 
     outline: 0;
     border: 0;
     border-radius: 0;
-    /* the writing line sits on the baseline, 0.42em above the bottom of a
-       Sirivennela line, so descenders hang below it like handwriting */
+    /* the writing line sits just under the baseline (0.42em above the bottom
+       of a Sirivennela line), so descenders hang below it like handwriting */
     --line-weight: 1.5px;
     background: linear-gradient(var(--ink-faint), var(--ink-faint))
-        no-repeat 0 calc(100% - 0.42em) / 100% var(--line-weight);
+        no-repeat 0 calc(100% - 0.35em) / 100% var(--line-weight);
 
     font: inherit;
     word-spacing: inherit;
