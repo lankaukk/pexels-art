@@ -403,6 +403,12 @@ const SmudgedSpoiler = ({ text }) => {
     dabCtx.globalCompositeOperation = "destination-in";
     dabCtx.drawImage(mask, 0, 0);
     const ctx = canvas.getContext("2d");
+    // first lift the paint under the eraser (so smudge that ran past the white
+    // rows, where the clean copy is empty, comes off too), then lay the clean
+    // text back in
+    ctx.globalCompositeOperation = "destination-out";
+    ctx.drawImage(rubTools.current.mask, left, top);
+    ctx.globalCompositeOperation = "source-over";
     ctx.globalAlpha = 0.9;
     ctx.drawImage(dab, left, top);
     ctx.globalAlpha = 1;
