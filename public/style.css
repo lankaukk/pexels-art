@@ -462,3 +462,8 @@ body {
     font: inherit;
     cursor: pointer;
 }
+
+.spoiler-studio button:disabled {
+    opacity: 0.4;
+    cursor: default;
+}

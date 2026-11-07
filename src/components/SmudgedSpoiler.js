@@ -230,6 +230,31 @@ const SmudgedSpoiler = ({ text }) => {
   };
 
 
+  // take back the last stroke: forget it, then redraw from the ones left
+  const undoStroke = useCallback(() => {
+    if (!strokesRef.current.length) return;
+    const next = strokesRef.current.slice(0, -1);
+    strokesRef.current = next;
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+    } catch (err) {}
+    setStrokeCount(next.length);
+    render();
+  }, [render]);
+
+  // Ctrl+Z (Cmd+Z on a Mac) undoes, in the studio
+  useEffect(() => {
+    if (!studio) return undefined;
+    const onKeyDown = (event) => {
+      if ((event.ctrlKey || event.metaKey) && !event.shiftKey && event.key.toLowerCase() === "z") {
+        event.preventDefault();
+        undoStroke();
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [studio, undoStroke]);
+
   const clearStudio = () => {
     strokesRef.current = [];
     try {
@@ -307,6 +332,9 @@ const SmudgedSpoiler = ({ text }) => {
         <span className="spoiler-studio" role="status">
           Studio: drag across the spoiler to smudge it. {strokeCount} strokes
           saved in this browser.{" "}
+          <button type="button" onClick={undoStroke} disabled={!strokeCount}>
+            Undo (⌘/Ctrl+Z)
+          </button>
           <button type="button" onClick={clearStudio}>
             Start over
           </button>
