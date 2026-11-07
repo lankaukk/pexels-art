@@ -108,7 +108,7 @@ const ArtistStatement = () => {
       </SiteLink>{" "}
       that Nikon’s super-zoom cameras can see things that should be hidden
       behind the curve of the Earth, so the curve must not exist. I, for one, am
-      a round-Earther. But I was <RippleText>stunned</RippleText> to meet a flat-earther
+      a round-Earther! But I was <RippleText>stunned</RippleText> to meet a flat-earther
       in real life, a type of person I’d only ever heard about. Honestly, I was
       a little impressed by his commitment to not believing anything he couldn’t
       see for himself. At the risk of sounding elitist, I really live in an
