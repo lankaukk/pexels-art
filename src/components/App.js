@@ -7,6 +7,7 @@ const App = () => {
     <div>
       <PicListContainer />
       <ArtistStatement />
+      <div className="page-scrim" aria-hidden="true" />
     </div>
   );
 };

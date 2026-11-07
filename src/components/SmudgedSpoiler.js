@@ -202,20 +202,9 @@ const SmudgedSpoiler = ({ text }) => {
     if (!usesCanvas) return undefined;
     render();
     if (document.fonts) document.fonts.ready.then(render);
-    const paragraph = canvasRef.current.parentElement;
     const observer = new ResizeObserver(() => render());
-    observer.observe(paragraph);
-    // the paragraph grows in from slightly smaller (useGrowIn), and letters
-    // measured mid-grow would put the smudge in the wrong place: redraw once
-    // it has settled at full size
-    const settled = (event) => {
-      if (event.target === paragraph && event.propertyName === "transform") render();
-    };
-    paragraph.addEventListener("transitionend", settled);
-    return () => {
-      observer.disconnect();
-      paragraph.removeEventListener("transitionend", settled);
-    };
+    observer.observe(canvasRef.current.parentElement);
+    return () => observer.disconnect();
   }, [usesCanvas, render]);
 
   // --- studio: smudge it yourself ---

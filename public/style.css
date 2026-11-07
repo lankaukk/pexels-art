@@ -509,12 +509,16 @@ body {
     }
 }
 
-/* small: the words shrink toward the baseline, hold, then grow back */
-.effect-small .effect-char {
+/* small: the whole phrase shrinks toward its baseline as one piece (letters
+   shrinking on their own would leave gaps), holds, then grows back */
+.effect-small {
+    display: inline-block;
     transform-origin: 50% 85%;
-    animation-name: small;
-    animation-duration: 4s;
-    animation-delay: calc(var(--i) * 25ms);
+    animation: small 4s ease-in-out 1;
+}
+
+.effect-small .effect-char {
+    animation: none;
 }
 
 @keyframes small {
@@ -545,7 +549,7 @@ body {
     animation-name: bloom-again;
 }
 
-.effect-small:hover .effect-char {
+.effect-small:hover {
     animation-name: small-again;
 }
 
@@ -626,16 +630,23 @@ body {
     touch-action: none;
 }
 
-/* paragraphs grow in from slightly smaller as they scroll into view (see
-   useGrowIn in ArtistStatement.js); without JavaScript they simply show */
-.statement > .grow-in {
-    opacity: 0;
-    transform: scale(0.96);
-    transform-origin: 0 50%;
-    transition: opacity 700ms ease-out, transform 700ms ease-out;
+
+/* a soft white fade along the bottom of the screen, so text dissolves into the
+   page as it scrolls under the edge */
+.page-scrim {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: calc(4.5rem + env(safe-area-inset-bottom, 0px));
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0), #ffffff 85%);
+    pointer-events: none;
+    z-index: 5;
 }
 
-.statement > .grow-in.is-in {
-    opacity: 1;
-    transform: none;
+@media (prefers-reduced-motion: reduce) {
+    .effect-small,
+    .effect-small:hover {
+        animation: none;
+    }
 }
