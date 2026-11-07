@@ -3,7 +3,11 @@ import { createSmudgeBrush } from "../smudgeBrush";
 import savedStrokes from "../spoilerStrokes.json";
 
 const REVEAL_MS = 1600; // the last letter starts appearing within this long
-const BRUSH_EM = 1.3; // smudge brush width, in letter heights
+const BRUSH_EM = 2; // smudge brush width, in letter heights
+// strong, firm-edged smears: each dab lays down most of the ink it carries and
+// picks up little white, so streaks of black and white stay distinct for longer
+const SMUDGE = { strength: 0.85, pickup: 0.1, hardness: 0.75 };
+const INK = "#2e2e2e"; // drawn darker than the page text, for contrast while smudged
 const STORAGE_KEY = "spoilerStrokes"; // studio strokes, kept in this browser
 
 // open the page with #studio to smudge the spoiler yourself
@@ -70,7 +74,6 @@ const SmudgedSpoiler = ({ text }) => {
       scale,
       em: fontSize * scale,
       font: `${style.fontWeight} ${fontSize * scale}px ${style.fontFamily}`,
-      color: style.getPropertyValue("--ink").trim() || "#6b6b6b",
       chars,
     };
   }, []);
@@ -141,7 +144,7 @@ const SmudgedSpoiler = ({ text }) => {
       );
     });
 
-    ctx.fillStyle = g.color;
+    ctx.fillStyle = INK;
     ctx.font = g.font;
     ctx.textBaseline = "alphabetic";
     const probe = ctx.measureText("Hg");
@@ -153,7 +156,7 @@ const SmudgedSpoiler = ({ text }) => {
       ctx.fillText(c.char, c.x, baseline);
     });
 
-    brushRef.current = createSmudgeBrush(ctx, { size: g.em * BRUSH_EM });
+    brushRef.current = createSmudgeBrush(ctx, { size: g.em * BRUSH_EM, ...SMUDGE });
     strokesRef.current.forEach((stroke) => {
       if (!stroke.length) return;
       brushRef.current.start(toCanvas(g, stroke[0]));

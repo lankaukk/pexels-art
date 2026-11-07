@@ -11,7 +11,7 @@ const makeCanvas = (size) => {
 
 export const createSmudgeBrush = (
   ctx,
-  { size, strength = 0.6, pickup = 0.2, spacing = 0.08 }
+  { size, strength = 0.6, pickup = 0.2, spacing = 0.08, hardness = 0.55 }
 ) => {
   size = Math.max(4, Math.round(size));
   const brush = makeCanvas(size);
@@ -24,7 +24,8 @@ export const createSmudgeBrush = (
   const r = size / 2;
   const falloff = maskCtx.createRadialGradient(r, r, 0, r, r, r);
   falloff.addColorStop(0, "rgba(0, 0, 0, 1)");
-  falloff.addColorStop(0.55, "rgba(0, 0, 0, 0.8)");
+  // hardness: how far out the brush stays solid before feathering off
+  falloff.addColorStop(hardness, "rgba(0, 0, 0, 0.8)");
   falloff.addColorStop(1, "rgba(0, 0, 0, 0)");
   maskCtx.fillStyle = falloff;
   maskCtx.fillRect(0, 0, size, size);
