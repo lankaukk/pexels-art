@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import SmudgedSpoiler from "./SmudgedSpoiler";
 import RippleText from "./RippleText";
+import ListenToEssay from "./ListenToEssay";
 import TextEffect from "./TextEffect";
 
 const LACMA_URL = "https://collections.lacma.org/object/31931";
@@ -159,6 +160,8 @@ const ArtistStatement = () => {
     <p className="statement-date">
       <time dateTime="2026-11-07T00:22">12:22am Sat November 07, 2026</time>
     </p>
+
+    <ListenToEssay />
   </section>
   );
 };

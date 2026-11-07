@@ -650,3 +650,66 @@ body {
         animation: none;
     }
 }
+
+/* read the essay aloud: a quiet button after the date, that becomes a pause
+   button with a progress line and the time while it speaks */
+.listen {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: 0.6rem;
+    font-size: 0.8rem;
+    color: #8a8a8a;
+}
+
+.listen button {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+}
+
+.listen-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45em;
+}
+
+.listen-button:hover,
+.listen-button:focus-visible,
+.listen-stop:hover,
+.listen-stop:focus-visible {
+    color: #4a4a4a;
+}
+
+.listen-icon {
+    font-size: 0.7em;
+}
+
+.listen-progress {
+    position: relative;
+    flex: 1 1 6rem;
+    max-width: 12rem;
+    height: 2px;
+    border-radius: 1px;
+    background: #e2e2e2;
+    overflow: hidden;
+}
+
+.listen-progress-fill {
+    position: absolute;
+    inset: 0 auto 0 0;
+    background: #8a8a8a;
+    transition: width 250ms linear;
+}
+
+.listen-time {
+    font-variant-numeric: tabular-nums;
+}
+
+.listen-stop {
+    font-size: 0.7em;
+}

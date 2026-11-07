@@ -522,6 +522,16 @@ const SmudgedSpoiler = ({ text }) => {
     else setRevealed(true);
   };
 
+  // the essay's read-aloud (ListenToEssay.js) asks for the reveal as it reaches
+  // the spoiler
+  const revealRef = useRef(reveal);
+  revealRef.current = reveal;
+  useEffect(() => {
+    const onReveal = () => revealRef.current();
+    window.addEventListener("spoiler:reveal", onReveal);
+    return () => window.removeEventListener("spoiler:reveal", onReveal);
+  }, []);
+
   const handleKeyDown = (event) => {
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
