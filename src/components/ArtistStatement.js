@@ -110,7 +110,7 @@ const ArtistStatement = () => (
       I was gagged! There I sat, relating to this woman I’d already decided was
       autistic, empathizing with her being so literal that I believe it made
       her deceptive only by accident. I, too, let my feelings shape what I think
-      I saw. And that’s on being human.
+      I see. And that’s on being human.
     </p>
 
     <p>
