@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import SmudgedSpoiler from "./SmudgedSpoiler";
 import RippleText from "./RippleText";
 import TextEffect from "./TextEffect";
@@ -23,9 +23,40 @@ const ArtworkLink = ({ href, image, children }) => (
   </a>
 );
 
+const RISE_REM = 5; // how far the statement rises toward the caption, at most
+const CLEARANCE_REM = 1.5; // the least space it keeps below the caption
+
+// the statement starts a couple of lines up into the space below the centered
+// caption, but never closer than CLEARANCE_REM to it (short screens leave less
+// room there); the artwork itself doesn't move
+const useRiseTowardCaption = () => {
+  const ref = useRef(null);
+  useEffect(() => {
+    const statement = ref.current;
+    const piece = document.querySelector(".piece");
+    const caption = document.querySelector(".piece .title");
+    if (!statement || !piece || !caption) return undefined;
+    const place = () => {
+      const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
+      const room = piece.getBoundingClientRect().bottom - caption.getBoundingClientRect().bottom;
+      const rise = Math.max(0, Math.min(RISE_REM * rem, room - CLEARANCE_REM * rem));
+      statement.style.marginTop = `${-rise}px`;
+    };
+    place();
+    if (document.fonts) document.fonts.ready.then(place);
+    const observer = new ResizeObserver(place);
+    observer.observe(piece);
+    observer.observe(caption);
+    return () => observer.disconnect();
+  }, []);
+  return ref;
+};
+
 // the wall text, below the artwork
-const ArtistStatement = () => (
-  <section className="statement" aria-label="About the work">
+const ArtistStatement = () => {
+  const sectionRef = useRiseTowardCaption();
+  return (
+  <section className="statement" aria-label="About the work" ref={sectionRef}>
     <p>
       In 1929, René Magritte painted a pipe. Beneath it he wrote something so
       literal that it will confuse you if you aren’t prepared to philosophize.
@@ -129,6 +160,7 @@ const ArtistStatement = () => (
       <time dateTime="2026-11-07T00:22">12:22am Sat November 07, 2026</time>
     </p>
   </section>
-);
+  );
+};
 
 export default ArtistStatement;

@@ -245,8 +245,8 @@ body {
 /* wall text below the artwork: small, grey, sans-serif */
 .statement {
     max-width: 34rem;
-    /* rises into the artwork's 2rem bottom padding, so its first line peeks
-       above the fold without ever crowding the caption */
+    /* rises toward the caption; the exact amount is set by
+       useRiseTowardCaption in ArtistStatement.js */
     margin: -2rem auto 0;
     padding: 0 1.5rem 6rem;
 
