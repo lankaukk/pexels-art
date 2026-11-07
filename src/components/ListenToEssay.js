@@ -33,6 +33,20 @@ const gatherSentences = (section) =>
     }));
   });
 
+// drawn icons for the controls, sized by the surrounding text
+const Icon = ({ name }) => (
+  <svg className="listen-svg" viewBox="0 0 16 16" aria-hidden="true">
+    {name === "play" && <path d="M4.5 2.8v10.4a.6.6 0 0 0 .9.5l8.2-5.2a.6.6 0 0 0 0-1L5.4 2.3a.6.6 0 0 0-.9.5z" />}
+    {name === "pause" && (
+      <>
+        <rect x="3.5" y="2.5" width="3" height="11" rx="1" />
+        <rect x="9.5" y="2.5" width="3" height="11" rx="1" />
+      </>
+    )}
+    {name === "stop" && <rect x="3" y="3" width="10" height="10" rx="2" />}
+  </svg>
+);
+
 const formatTime = (seconds) => {
   const s = Math.max(0, Math.round(seconds));
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
@@ -171,9 +185,7 @@ const ListenToEssay = () => {
         ref={buttonRef}
         aria-label={state === "idle" ? undefined : state === "playing" ? "Pause" : "Resume"}
       >
-        <span className="listen-icon" aria-hidden="true">
-          {state === "playing" ? "❚❚" : "▶"}
-        </span>
+        <Icon name={state === "playing" ? "pause" : "play"} />
         {!active && "Listen to this essay"}
       </button>
       {active && (
@@ -204,7 +216,7 @@ const ListenToEssay = () => {
             ))}
           </select>
           <button type="button" className="listen-stop" onClick={stop} aria-label="Stop">
-            ■
+            <Icon name="stop" />
           </button>
         </>
       )}

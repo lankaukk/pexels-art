@@ -844,3 +844,26 @@ body {
 .listen:not(.is-active) .listen-button:focus-visible {
     background: none;
 }
+
+/* the play, pause and stop icons */
+.listen-svg {
+    display: block;
+    width: 0.95rem;
+    height: 0.95rem;
+    fill: currentColor;
+    flex: none;
+}
+
+.listen:not(.is-active) .listen-button {
+    gap: 0.55em;
+}
+
+.listen-stop .listen-svg {
+    width: 0.85rem;
+    height: 0.85rem;
+}
+
+.listen-stop {
+    display: inline-flex;
+    align-items: center;
+}
