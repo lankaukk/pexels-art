@@ -42,10 +42,9 @@ const ArtistStatement = () => (
     </p>
 
     <p>
-      It should be said, since one can no longer assume such things, that no
-      machine has dreamed any of this. There is no generative oracle here
-      inventing oceans that never were; only real photographs, taken by real
-      people, averaged by plain arithmetic until they forget what they showed.
+      And no, this isn’t AI. Nothing here was dreamed up by a machine. These are
+      real photos, taken by real people standing somewhere real, just averaged
+      down with plain old math until they forget what they were of.
     </p>
 
     <p>
