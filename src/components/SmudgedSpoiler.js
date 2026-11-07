@@ -5,7 +5,7 @@ import savedStrokes from "../spoilerStrokes.json";
 const REVEAL_MS = 1600; // the last letter starts appearing within this long
 const BRUSH_EM = 2; // smudge brush width, in letter heights
 const INK = "#6b6b6b"; // the page text's own grey
-// the un-smudge: one wiping stroke per line of text, left to right
+// the un-smudge: one wiping stroke per line of text, right to left
 const UNSMUDGE_LINE_MS = 650; // each line's stroke
 const UNSMUDGE_STAGGER_MS = 420; // the next line's stroke starts this soon after
 const STORAGE_KEY = "spoilerStrokes"; // studio strokes, kept in this browser
@@ -305,7 +305,7 @@ const SmudgedSpoiler = ({ text }) => {
 
   // --- the reveal ---
 
-  // un-smudge: each line gets one stroke, left to right, that wipes the smudge
+  // un-smudge: each line gets one stroke, right to left, that wipes the smudge
   // back to clean letters. A line's stroke covers the full width and everything
   // from its top to the next line's (the first and last reach the canvas edges),
   // so paint that ran off the edges is wiped up too. Then the real text takes over
@@ -321,7 +321,7 @@ const SmudgedSpoiler = ({ text }) => {
     const bands = rows.map((row, n) => ({
       top: n === 0 ? 0 : Math.floor(row.top),
       bottom: n === rows.length - 1 ? canvas.height : Math.ceil(rows[n + 1].top) + 1,
-      wiped: 0,
+      wiped: canvas.width, // everything right of this is already clean
     }));
     const feather = geometry.current.em * 1.5;
     const start = performance.now();
@@ -334,14 +334,14 @@ const SmudgedSpoiler = ({ text }) => {
           return;
         }
         const eased = 1 - Math.pow(1 - Math.min(1, t), 2);
-        const x = eased * (canvas.width + feather);
+        const x = canvas.width - eased * (canvas.width + feather);
         const height = band.bottom - band.top;
         // fully clean behind the stroke...
-        if (x > band.wiped) {
+        if (x < band.wiped) {
           ctx.save();
           ctx.globalCompositeOperation = "copy";
           ctx.beginPath();
-          ctx.rect(band.wiped, band.top, x - band.wiped, height);
+          ctx.rect(x, band.top, band.wiped - x, height);
           ctx.clip();
           ctx.drawImage(clean, 0, 0);
           ctx.restore();
@@ -351,7 +351,7 @@ const SmudgedSpoiler = ({ text }) => {
         ctx.save();
         ctx.globalAlpha = 0.35;
         ctx.beginPath();
-        ctx.rect(x, band.top, feather, height);
+        ctx.rect(x - feather, band.top, feather, height);
         ctx.clip();
         ctx.drawImage(clean, 0, 0);
         ctx.restore();
