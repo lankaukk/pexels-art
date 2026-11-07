@@ -4,10 +4,7 @@ import savedStrokes from "../spoilerStrokes.json";
 
 const REVEAL_MS = 1600; // the last letter starts appearing within this long
 const BRUSH_EM = 2; // smudge brush width, in letter heights
-// strong, firm-edged smears: each dab lays down most of the ink it carries and
-// picks up little white, so streaks of black and white stay distinct for longer
-const SMUDGE = { strength: 0.85, pickup: 0.1, hardness: 0.75 };
-const INK = "#2e2e2e"; // drawn darker than the page text, for contrast while smudged
+const INK = "#6b6b6b"; // the page text's own grey
 const STORAGE_KEY = "spoilerStrokes"; // studio strokes, kept in this browser
 
 // open the page with #studio to smudge the spoiler yourself
@@ -156,7 +153,7 @@ const SmudgedSpoiler = ({ text }) => {
       ctx.fillText(c.char, c.x, baseline);
     });
 
-    brushRef.current = createSmudgeBrush(ctx, { size: g.em * BRUSH_EM, ...SMUDGE });
+    brushRef.current = createSmudgeBrush(ctx, { size: g.em * BRUSH_EM });
     strokesRef.current.forEach((stroke) => {
       if (!stroke.length) return;
       brushRef.current.start(toCanvas(g, stroke[0]));
