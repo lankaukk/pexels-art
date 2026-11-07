@@ -32,23 +32,22 @@ const ArtistStatement = () => (
     </p>
 
     <p>
-      In a completely different manner, no one knows what’s real anymore. Here
-      you can type anything into this caption, and 144 strangers’ photographs
-      are summoned from{" "}
+      No one knows what’s real anymore. Type anything you want into this
+      caption, and 144 strangers’ photographs are summoned from{" "}
       <SiteLink
         href={PEXELS_URL}
         icon="https://static.pexels.com/1/images/meta/pexels-icon.png"
       >
         Pexels
       </SiteLink>
-      . Each is rendered as a square in its average color, like a memory you no
-      longer have storage for.
+      . Each one is rendered as a square in its average color, like a memory
+      you no longer have the storage to load.
     </p>
 
     <p>
-      And no, this isn’t AI. Nothing here was dreamed up by a machine. These are
-      real photos, taken by real people standing somewhere real, just averaged
-      down with plain old math until they forget what they were of.
+      This is image gen without AI. It’s color association without copying.
+      (But the images on Pexels are free to use anyway.) These are real photos
+      by real people, collaged, recycled, and averaged with plain math.
     </p>
 
     <p>
