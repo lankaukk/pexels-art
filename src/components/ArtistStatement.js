@@ -15,16 +15,16 @@ const SiteLink = ({ href, icon, children }) => (
 const ArtistStatement = () => (
   <section className="statement" aria-label="About the work">
     <p>
-      In 1929, René Magritte painted a pipe and then, in a schoolteacher’s tidy
-      hand, gently broke the news to it: <em>Ceci n’est pas une pipe.</em> It
-      was only ever paint. It rests now at the{" "}
+      In 1929, René Magritte painted a pipe, and then wrote something very
+      obvious beneath it: this is not a pipe. It’s only a painting, and
+      unfortunately, you can’t smoke a painting. This is{" "}
       <SiteLink
         href={LACMA_URL}
         icon="https://collections.lacma.org/favicon.ico?favicon.3a5fa5de.ico"
       >
-        Los Angeles County Museum of Art
+        The Treachery of Images
       </SiteLink>
-      , still not a pipe, still never once smoked.
+      , and it has haunted the artist ever since, more or less daily.
     </p>
 
     <p>
