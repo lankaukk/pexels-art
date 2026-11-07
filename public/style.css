@@ -362,3 +362,34 @@ body {
         transition: none;
     }
 }
+
+/* iMessage-style ripple: a wave travels across the letters, then rests */
+.ripple {
+    white-space: nowrap;
+}
+
+.ripple-char {
+    display: inline-block;
+    animation: ripple 2.4s ease-in-out infinite;
+    animation-delay: calc(var(--i) * 70ms);
+}
+
+@keyframes ripple {
+    0%,
+    30%,
+    100% {
+        transform: translateY(0);
+    }
+    10% {
+        transform: translateY(-0.28em);
+    }
+    20% {
+        transform: translateY(0.06em);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ripple-char {
+        animation: none;
+    }
+}

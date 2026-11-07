@@ -1,5 +1,6 @@
 import React from "react";
 import SmudgedSpoiler from "./SmudgedSpoiler";
+import RippleText from "./RippleText";
 
 const LACMA_URL = "https://collections.lacma.org/object/31931";
 const PEXELS_URL = "https://www.pexels.com/api/";
@@ -74,7 +75,7 @@ const ArtistStatement = () => (
         theory
       </SiteLink>{" "}
       that Nikon’s super-zoom cameras can see things that should be hidden
-      behind the curve of the Earth, so the curve must not exist. This is 100% false, but I was stunned to
+      behind the curve of the Earth, so the curve must not exist. This is 100% false, but I was <RippleText>stunned</RippleText> to
       meet a flat-earther in real life, and that impressed me! At the risk of
       sounding snobbish, I really live in an educational bubble.
     </p>
