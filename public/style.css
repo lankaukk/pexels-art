@@ -109,7 +109,7 @@ body {
 .entry {
     display: inline-flex;
     align-items: baseline;
-    gap: 0.15em;
+    gap: 0.05em;
     max-width: 100%;
 }
 
@@ -123,6 +123,9 @@ body {
     position: relative;
     display: inline-block;
     max-width: 100%;
+    /* pulls back the input's text-indent, so the indent only makes room for
+       lead-in strokes instead of showing as extra space */
+    margin-left: -0.22em;
     transition: width 160ms ease-out;
 }
 
@@ -136,14 +139,14 @@ body {
     white-space: pre;
     pointer-events: none;
     /* matches the input's padding plus text-indent */
-    padding: 0 0.15em 0 0.4em;
+    padding: 0 0.04em 0 0.22em;
 }
 
 /* blinking cursor for the empty blank while it isn't focused, placed where
    the real cursor sits: after the input's padding and text-indent */
 .fake-caret {
     position: absolute;
-    left: 0.4em;
+    left: 0.22em;
     top: 0.15em;
     bottom: 0.2em;
     width: 1.5px;
@@ -180,16 +183,17 @@ body {
        of a Sirivennela line), so descenders hang below it like handwriting */
     --line-weight: 1.5px;
     background: linear-gradient(var(--ink-faint), var(--ink-faint))
-        no-repeat 0 calc(100% - 0.35em) / 100% var(--line-weight);
+        no-repeat 0.22em calc(100% - 0.35em) / calc(100% - 0.22em) var(--line-weight);
 
     font: inherit;
     word-spacing: inherit;
     color: inherit;
 
-    padding: 0 0.15em;
+    /* just enough on the right for the cursor after the last letter */
+    padding: 0 0.04em 0 0;
     /* inputs clip typed text at their content edge, and the script's lead-in
-       strokes reach about 0.2em left of the letter, so indent past them */
-    text-indent: 0.25em;
+       strokes reach 0.21em left of the letter, so indent past them */
+    text-indent: 0.22em;
 }
 
 .search:focus {

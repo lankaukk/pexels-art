@@ -2,10 +2,14 @@ import React, { Component, createRef } from "react";
 
 // ideas typed out in the empty blank, one at a time
 const EXAMPLES = ["pipe", "ocean", "moonlight", "Venus flytrap"];
-const TYPE_MS = 90; // per letter typed
 const HOLD_MS = 1800; // finished word stays up
-const DELETE_MS = 50; // per letter deleted
 const GAP_MS = 300; // empty blank before the next word
+
+// a person's keystrokes aren't evenly spaced: each letter takes 55-145ms,
+// with a beat after a space; deleting is a quicker, steadier 35-65ms
+const typeDelay = (typed) =>
+  55 + Math.random() * 90 + (typed.endsWith(" ") ? 120 : 0);
+const deleteDelay = () => 35 + Math.random() * 30;
 
 class PicSearchPaginate extends Component {
   state = {
@@ -21,7 +25,7 @@ class PicSearchPaginate extends Component {
   sizerRef = createRef();
 
   componentDidMount() {
-    this.scheduleTyping(TYPE_MS);
+    this.scheduleTyping(GAP_MS);
     this.sizeBlank();
     // the script font loads after first paint and changes the text width
     if (document.fonts) document.fonts.ready.then(this.sizeBlank);
@@ -49,18 +53,19 @@ class PicSearchPaginate extends Component {
     if (this.deleting) {
       if (typedLength > 0) {
         this.setState({ typedLength: typedLength - 1 });
-        this.scheduleTyping(DELETE_MS);
+        this.scheduleTyping(deleteDelay());
       } else {
         this.deleting = false;
         this.setState({ exampleIndex: (exampleIndex + 1) % EXAMPLES.length });
         this.scheduleTyping(GAP_MS);
       }
     } else if (typedLength < word.length) {
+      const typed = word.slice(0, typedLength + 1);
       this.setState({ typedLength: typedLength + 1 });
-      this.scheduleTyping(typedLength + 1 === word.length ? HOLD_MS : TYPE_MS);
+      this.scheduleTyping(typed === word ? HOLD_MS : typeDelay(typed));
     } else {
       this.deleting = true;
-      this.scheduleTyping(DELETE_MS);
+      this.scheduleTyping(deleteDelay());
     }
   };
 
