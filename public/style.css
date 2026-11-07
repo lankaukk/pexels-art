@@ -239,3 +239,47 @@ body {
     stroke-linejoin: round;
 }
 
+
+/* wall text below the artwork: small, grey, sans-serif */
+.statement {
+    max-width: 34rem;
+    /* rises into the artwork's 2rem bottom padding, so its first line peeks
+       above the fold without ever crowding the caption */
+    margin: -2rem auto 0;
+    padding: 0 1.5rem 6rem;
+
+    font-family: 'Libre Franklin', Arial, Helvetica, sans-serif;
+    font-weight: 300;
+    font-size: 0.9rem;
+    line-height: 1.65;
+    color: #6b6b6b;
+}
+
+.statement p {
+    margin: 0 0 1.1em;
+}
+
+.site-link {
+    color: #2f5fb3;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.site-link:hover,
+.site-link:focus-visible {
+    text-decoration: underline;
+}
+
+/* the site's favicon in a small circle; the light disc shows the circle even
+   when a favicon has a transparent background */
+.site-icon {
+    box-sizing: border-box;
+    width: 1.25em;
+    height: 1.25em;
+    margin-right: 0.3em;
+    padding: 0.18em;
+    border-radius: 50%;
+    background-color: #ececec;
+    object-fit: contain;
+    vertical-align: -0.3em;
+}
