@@ -105,7 +105,7 @@ const ArtistStatement = () => (
       />{" "}
       I was gagged! There I sat, relating to this clearly autistic woman,
       empathizing with her being so literal that I’d decided it made her
-      deceptive only by accident, though still in an awfully harmful way. I,
+      deceptive only by accident. I,
       too, let my feelings shape what I thought I saw. And that is inherently
       human.
     </p>
