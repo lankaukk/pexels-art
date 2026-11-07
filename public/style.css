@@ -572,16 +572,18 @@ body {
     }
 }
 
-/* big: the word swells well past its size, holds a beat, then settles; the
-   whole word grows from its baseline so the line doesn't jump */
-.effect-big .effect-char {
-    transform-origin: 50% 85%;
-    animation-name: big;
-    animation-duration: 1.8s;
-    animation-delay: 0ms;
+/* big: the whole word swells from its center, holds a beat, then settles */
+.effect-big {
+    display: inline-block;
+    transform-origin: 50% 50%;
+    animation: big 1.8s ease-in-out 1;
 }
 
-.effect-big:hover .effect-char {
+.effect-big .effect-char {
+    animation: none;
+}
+
+.effect-big:hover {
     animation-name: big-again;
 }
 
@@ -593,4 +595,11 @@ body {
 @keyframes big-again {
     0%, 100% { transform: scale(1); }
     25%, 55% { transform: scale(1.7); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .effect-big,
+    .effect-big:hover {
+        animation: none;
+    }
 }
