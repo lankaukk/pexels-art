@@ -75,9 +75,12 @@ const ArtistStatement = () => (
         theory
       </SiteLink>{" "}
       that Nikon’s super-zoom cameras can see things that should be hidden
-      behind the curve of the Earth, so the curve must not exist. This is 100% false, but I was <RippleText>stunned</RippleText> to
-      meet a flat-earther in real life, and that impressed me! At the risk of
-      sounding snobbish, I really live in an educational bubble.
+      behind the curve of the Earth, so the curve must not exist. This is 100%
+      false, but I was <RippleText>stunned</RippleText> to meet a flat-earther
+      in real life, a type of person I’d only ever heard about. Honestly, I was
+      a little impressed by his commitment to not believing anything he couldn’t
+      see for himself. At the risk of sounding snobbish, I really live in an
+      educational bubble.
     </p>
 
     <p>
@@ -104,26 +107,19 @@ const ArtistStatement = () => (
           "decide, objectively, whether she’s guilty."
         }
       />{" "}
-      I was gagged! There I sat, relating to this clearly autistic woman,
-      empathizing with her being so literal that I’d decided it made her
-      deceptive only by accident. I,
-      too, let my feelings shape what I think I saw. And that is inherently
-      human.
+      I was gagged! There I sat, relating to this woman I’d already decided was
+      autistic, empathizing with her being so literal that I’d decided it made
+      her deceptive only by accident. I, too, let my feelings shape what I think
+      I saw. And that is inherently human.
     </p>
 
     <p>
       Whether it’s an algorithm, our emotions, a camera lens, or the limits of
       how much detail technology can capture, something always stands between
-      us and the thing itself. So who knows what’s real anymore? Even the
-      concept of metadata was invented by people with a limited understanding
-      of what truth even is.
+      us and the thing itself. So who knows what’s real anymore?
     </p>
 
-    <p>
-      Maybe that’s why this little frame feels honest to me. It never pretends
-      to be the ocean. It’s 144 strangers’ glances, averaged, and at least it
-      admits it.
-    </p>
+    <p>All of this to say: nothing matters, so I framed some pixels.</p>
   </section>
 );
 
