@@ -100,13 +100,14 @@ const ArtistStatement = () => (
         text={
           "In the end, Amanda essentially asks Nathan whether his own " +
           "subconscious feelings toward Elizabeth are clouding his ability to " +
-          "decide, objectively, whether she’s guilty. I was gagged! There I " +
-          "sat, relating to this clearly autistic woman, empathizing with her " +
-          "being so literal that I’d decided it made her deceptive only by " +
-          "accident, though still in an awfully harmful way. I, too, let my " +
-          "feelings shape what I thought I saw. And that is inherently human."
+          "decide, objectively, whether she’s guilty."
         }
-      />
+      />{" "}
+      I was gagged! There I sat, relating to this clearly autistic woman,
+      empathizing with her being so literal that I’d decided it made her
+      deceptive only by accident, though still in an awfully harmful way. I,
+      too, let my feelings shape what I thought I saw. And that is inherently
+      human.
     </p>
 
     <p>
