@@ -99,7 +99,7 @@ const ArtistStatement = () => (
     </p>
 
     <p>
-      Spoiler alert:{" "}
+      <span className="above-smudge">Spoiler alert:</span>{" "}
       <SmudgedSpoiler
         text={
           "In the end, Amanda essentially asks Nathan whether his own " +

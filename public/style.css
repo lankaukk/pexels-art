@@ -467,3 +467,13 @@ body {
     opacity: 0.4;
     cursor: default;
 }
+
+/* words kept on top of the spoiler's smudge, so it can pass under them */
+.above-smudge {
+    position: relative;
+    z-index: 1;
+}
+
+.spoiler-canvas {
+    z-index: 0;
+}
