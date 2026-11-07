@@ -101,6 +101,16 @@ body {
   font-size: clamp(2.25rem, 6.5vw, 4.5rem);
   word-spacing: 0.15em;
   color: #1a1a1a;
+  /* the writing line, example words and Enter arrow */
+  --ink-faint: rgba(26, 26, 26, 0.3);
+}
+
+/* the blank and its Enter arrow wrap together */
+.entry {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.15em;
+    max-width: 100%;
 }
 
 .caption {
@@ -137,7 +147,7 @@ body {
     /* the writing line sits on the baseline, 0.42em above the bottom of a
        Sirivennela line, so descenders hang below it like handwriting */
     --line-weight: 1.5px;
-    background: linear-gradient(rgba(26, 26, 26, 0.5), rgba(26, 26, 26, 0.5))
+    background: linear-gradient(var(--ink-faint), var(--ink-faint))
         no-repeat 0 calc(100% - 0.42em) / 100% var(--line-weight);
 
     font: inherit;
@@ -152,5 +162,37 @@ body {
 
 .search:focus {
     --line-weight: 2.5px;
+}
+
+.search::placeholder {
+    color: var(--ink-faint);
+    opacity: 1;
+}
+
+.enter {
+    flex: none;
+    /* buttons don't inherit font size, which the arrow's em sizing relies on */
+    font-size: inherit;
+    padding: 0.1em;
+    border: 0;
+    background: none;
+    color: var(--ink-faint);
+    cursor: pointer;
+    line-height: 0;
+}
+
+.enter:hover,
+.enter:focus-visible {
+    color: #1a1a1a;
+}
+
+.enter svg {
+    width: 0.45em;
+    height: 0.45em;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
 }
 
