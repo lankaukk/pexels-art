@@ -32,9 +32,9 @@ const ArtistStatement = () => (
       <ArtworkLink href={LACMA_URL} image="treachery-of-images.jpg">
         The Treachery of Images
       </ArtworkLink>
-      , and a century later I’m still afflicted by its absurd, wildly unfair
-      truth: a picture of a thing is never the thing, and everywhere we scroll
-      these days that is true on a whole new level.
+      , and a century later I’m still afflicted by this wildly unfair truth: a
+      picture of a thing is never the thing. And everywhere I scroll these days
+      reminds me of it.
     </p>
 
     <p>
