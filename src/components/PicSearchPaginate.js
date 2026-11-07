@@ -14,13 +14,17 @@ class PicSearchPaginate extends Component {
     exampleIndex: 0,
     // how much of the current example is typed out
     typedLength: 0,
-    focused: false,
   };
 
+  entryRef = createRef();
   blankRef = createRef();
   sizerRef = createRef();
+  inputRef = createRef();
+  arrowRef = createRef();
 
   componentDidMount() {
+    // focused from the start, so the browser's own cursor blinks in the blank
+    this.inputRef.current.focus({ preventScroll: true });
     this.scheduleTyping(GAP_MS);
     this.sizeBlank();
     // the script font loads after first paint and changes the text width
@@ -64,26 +68,34 @@ class PicSearchPaginate extends Component {
     }
   };
 
-  // the blank is as wide as its text, measured from a hidden copy, so its
-  // width can transition and the whole centered caption glides with it
+  // the blank is as wide as its text, measured from a hidden copy. The blank and
+  // Enter arrow take their new size at once, so a new letter is never clipped or
+  // tucked under the arrow; the box around them (.entry) eases to match, and the
+  // whole centered caption glides with it
   sizeBlank = () => {
     const sizer = this.sizerRef.current;
     const blank = this.blankRef.current;
-    if (!sizer || !blank) return;
+    const entry = this.entryRef.current;
+    const arrow = this.arrowRef.current;
+    if (!sizer || !blank || !entry || !arrow) return;
     const fontSize = parseFloat(getComputedStyle(sizer).fontSize);
-    const widthEm = sizer.offsetWidth / fontSize;
-    blank.style.width = `${widthEm.toFixed(3)}em`;
+    const blankEm = sizer.offsetWidth / fontSize;
+    const gapEm = parseFloat(getComputedStyle(entry).columnGap) / fontSize || 0;
+    const arrowEm = arrow.offsetWidth / fontSize;
+    blank.style.width = `${blankEm.toFixed(3)}em`;
+    entry.style.width = `${(blankEm + gapEm + arrowEm).toFixed(3)}em`;
   };
 
   handleChange = (event) => {
     const query = event.target.value;
     this.setState({ query, pageIndex: 1 });
     if (query === "") {
-      // blank cleared: the typist starts over with a fresh word
+      // blank cleared: the example comes back and starts over with a fresh word
       this.deleting = false;
       this.setState({ typedLength: 0 });
       this.scheduleTyping(GAP_MS);
     } else {
+      // the person took over: the example stops where it is and fades out
       clearTimeout(this.typingTimer);
     }
   };
@@ -101,8 +113,8 @@ class PicSearchPaginate extends Component {
   };
 
   render() {
-    const { query, exampleIndex, typedLength, focused } = this.state;
-    const placeholder = EXAMPLES[exampleIndex].slice(0, typedLength);
+    const { query, exampleIndex, typedLength } = this.state;
+    const example = EXAMPLES[exampleIndex].slice(0, typedLength);
 
     return (
       <div>
@@ -111,32 +123,38 @@ class PicSearchPaginate extends Component {
           <label htmlFor="title" className="caption">
             Ceci n’est pas une
           </label>
-          <span className="entry">
+          <span className="entry" ref={this.entryRef}>
             <span className="blank" ref={this.blankRef}>
               <span className="blank-sizer" ref={this.sizerRef} aria-hidden="true">
-                {query || placeholder}
+                {query || example}
+              </span>
+              {/* drawn beside the input instead of as its placeholder, which
+                  browsers hide instantly, so it can fade out when typing starts */}
+              <span
+                className={query ? "example is-hidden" : "example"}
+                aria-hidden="true"
+              >
+                {example}
               </span>
               <input
                 id="title"
+                ref={this.inputRef}
                 aria-label="Title"
                 type="text"
                 size={1}
                 autoComplete="off"
                 spellCheck="false"
-                placeholder={placeholder}
                 value={query}
                 className="search"
                 onChange={this.handleChange}
-                onFocus={() => this.setState({ focused: true })}
-                onBlur={() => this.setState({ focused: false })}
               />
-              {/* browsers only draw the real cursor while the blank is focused,
-                  so an empty, unfocused blank gets a blinking stand-in */}
-              {!focused && query === "" && (
-                <span className="fake-caret" aria-hidden="true" />
-              )}
             </span>
-            <button type="submit" className="enter" aria-label="Make the artwork">
+            <button
+              type="submit"
+              className="enter"
+              aria-label="Make the artwork"
+              ref={this.arrowRef}
+            >
               {/* the curved "return" arrow from the Enter key */}
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M20 5v6a4 4 0 0 1-4 4H5" />

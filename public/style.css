@@ -94,7 +94,9 @@ body {
   /* when the caption and the typed words outgrow this, the blank wraps onto its
      own centered line */
   max-width: calc(100vw - 4rem);
-  margin: 0 auto;
+  /* Sirivennela's line box runs 0.27em below its lowest descenders; pulling that
+     in centers the frame and caption by what's visible, not by empty space */
+  margin: 0 auto -0.27em;
 
   font-family: 'Sirivennela', cursive;
   /* Sirivennela runs small and tightly spaced, so size it up and open the word gaps */
@@ -105,28 +107,47 @@ body {
   --ink-faint: rgba(26, 26, 26, 0.3);
 }
 
-/* the blank and its Enter arrow wrap together */
+/* the blank and its Enter arrow wrap together. Their combined width is set
+   from .blank-sizer (see PicSearchPaginate.js) and eases between sizes, so the
+   centered caption glides as letters come and go */
 .entry {
     display: inline-flex;
     align-items: baseline;
     gap: 0.05em;
     max-width: 100%;
+    transition: width 160ms ease-out;
 }
 
 .caption {
     white-space: nowrap;
 }
 
-/* the blank's width is set from .blank-sizer (see PicSearchPaginate.js) and
-   eases between sizes, so the centered caption glides as letters come and go */
+/* the blank takes its new width at once (it doesn't shrink while .entry
+   catches up), so letters are never clipped */
 .blank {
     position: relative;
     display: inline-block;
-    max-width: 100%;
+    flex: none;
+    max-width: calc(100vw - 6rem);
     /* pulls back the input's text-indent, so the indent only makes room for
        lead-in strokes instead of showing as extra space */
     margin-left: -0.22em;
-    transition: width 160ms ease-out;
+}
+
+/* the example word, faint, starting right where the cursor sits */
+.example {
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding-left: 0.22em;
+    white-space: pre;
+    color: var(--ink-faint);
+    pointer-events: none;
+    transition: opacity 150ms ease-out;
+}
+
+.example.is-hidden {
+    opacity: 0;
 }
 
 /* invisible copy of the blank's text, measured for the blank's width */
@@ -139,35 +160,13 @@ body {
     white-space: pre;
     pointer-events: none;
     /* matches the input's padding plus text-indent */
-    padding: 0 0.04em 0 0.22em;
-}
-
-/* blinking cursor for the empty blank while it isn't focused, placed where
-   the real cursor sits: after the input's padding and text-indent */
-.fake-caret {
-    position: absolute;
-    left: 0.22em;
-    top: 0.15em;
-    bottom: 0.2em;
-    width: 1.5px;
-    background-color: #1a1a1a;
-    pointer-events: none;
-    animation: caret-blink 1.06s steps(1) infinite;
-}
-
-@keyframes caret-blink {
-    50% {
-        opacity: 0;
-    }
+    padding: 0 0.1em 0 0.22em;
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .blank {
+    .entry,
+    .example {
         transition: none;
-    }
-
-    .fake-caret {
-        animation: none;
     }
 }
 
@@ -184,17 +183,14 @@ body {
     font: inherit;
     word-spacing: inherit;
     color: inherit;
+    caret-color: #1a1a1a;
 
-    /* just enough on the right for the cursor after the last letter */
-    padding: 0 0.04em 0 0;
+    /* room on the right for the cursor and for letters whose strokes reach
+       past their width (up to 0.09em, on T) */
+    padding: 0 0.1em 0 0;
     /* inputs clip typed text at their content edge, and the script's lead-in
        strokes reach 0.21em left of the letter, so indent past them */
     text-indent: 0.22em;
-}
-
-.search::placeholder {
-    color: var(--ink-faint);
-    opacity: 1;
 }
 
 .enter {
