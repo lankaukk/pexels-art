@@ -867,3 +867,11 @@ body {
     display: inline-flex;
     align-items: center;
 }
+
+/* nothing widens the page sideways (the spoiler's smudge canvas reaches past
+   its paragraph, and on phones past the screen edge); clip, unlike hidden,
+   doesn't make the page its own scroll box */
+html,
+body {
+    overflow-x: clip;
+}
