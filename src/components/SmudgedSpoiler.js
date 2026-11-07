@@ -476,11 +476,6 @@ const SmudgedSpoiler = ({ text }) => {
 
   return (
     <>
-      {canRub && (
-        <span className="spoiler-hint above-smudge" aria-hidden="true">
-          (rub or tap to reveal){" "}
-        </span>
-      )}
       <span
         ref={spanRef}
         className={className}

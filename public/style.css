@@ -615,13 +615,7 @@ body {
     opacity: 0;
 }
 
-/* rub or tap to reveal: the hint, and dragging on the smudge wipes it instead
-   of scrolling */
-.spoiler-hint {
-    color: #9a9a9a;
-    font-style: italic;
-}
-
+/* rub or tap to reveal: dragging on the smudge wipes it instead of scrolling */
 .spoiler.uses-canvas:not(.is-revealed) {
     touch-action: none;
     cursor: grab;
