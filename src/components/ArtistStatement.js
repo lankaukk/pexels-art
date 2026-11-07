@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import SmudgedSpoiler from "./SmudgedSpoiler";
 import RippleText from "./RippleText";
 import TextEffect from "./TextEffect";
@@ -23,9 +23,40 @@ const ArtworkLink = ({ href, image, children }) => (
   </a>
 );
 
+// each paragraph grows in from slightly smaller as it scrolls into view;
+// several arriving together come in one after another
+const useGrowIn = () => {
+  const ref = useRef(null);
+  useEffect(() => {
+    const section = ref.current;
+    if (!section || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      return undefined;
+    }
+    const blocks = [...section.children];
+    blocks.forEach((block) => block.classList.add("grow-in"));
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries
+          .filter((entry) => entry.isIntersecting)
+          .forEach((entry, n) => {
+            entry.target.style.transitionDelay = `${n * 110}ms`;
+            entry.target.classList.add("is-in");
+            observer.unobserve(entry.target);
+          });
+      },
+      { threshold: 0.15 }
+    );
+    blocks.forEach((block) => observer.observe(block));
+    return () => observer.disconnect();
+  }, []);
+  return ref;
+};
+
 // the wall text, below the artwork
-const ArtistStatement = () => (
-  <section className="statement" aria-label="About the work">
+const ArtistStatement = () => {
+  const sectionRef = useGrowIn();
+  return (
+  <section className="statement" aria-label="About the work" ref={sectionRef}>
     <p>
       In 1929, René Magritte painted a pipe. Beneath it he wrote something so
       literal that it will confuse you if you aren’t prepared to philosophize.
@@ -129,6 +160,7 @@ const ArtistStatement = () => (
       <time dateTime="2026-11-07T00:22">12:22am Sat November 07, 2026</time>
     </p>
   </section>
-);
+  );
+};
 
 export default ArtistStatement;

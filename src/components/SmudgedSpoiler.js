@@ -8,7 +8,7 @@ const INK = "#6b6b6b"; // the page text's own grey
 // the un-smudge: one wiping stroke per line of text, right to left
 const UNSMUDGE_LINE_MS = 650; // each line's stroke
 const UNSMUDGE_STAGGER_MS = 420; // the next line's stroke starts this soon after
-const RUB_EM = 1.6; // rub-to-reveal eraser width, in letter heights
+const RUB_EM = 3.2; // rub-to-reveal eraser width, in letter heights
 const STORAGE_KEY = "spoilerStrokes"; // studio strokes, kept in this browser
 
 // open the page with #studio to smudge the spoiler yourself
@@ -202,9 +202,20 @@ const SmudgedSpoiler = ({ text }) => {
     if (!usesCanvas) return undefined;
     render();
     if (document.fonts) document.fonts.ready.then(render);
+    const paragraph = canvasRef.current.parentElement;
     const observer = new ResizeObserver(() => render());
-    observer.observe(canvasRef.current.parentElement);
-    return () => observer.disconnect();
+    observer.observe(paragraph);
+    // the paragraph grows in from slightly smaller (useGrowIn), and letters
+    // measured mid-grow would put the smudge in the wrong place: redraw once
+    // it has settled at full size
+    const settled = (event) => {
+      if (event.target === paragraph && event.propertyName === "transform") render();
+    };
+    paragraph.addEventListener("transitionend", settled);
+    return () => {
+      observer.disconnect();
+      paragraph.removeEventListener("transitionend", settled);
+    };
   }, [usesCanvas, render]);
 
   // --- studio: smudge it yourself ---
@@ -410,8 +421,23 @@ const SmudgedSpoiler = ({ text }) => {
 
   const canRub = usesCanvas && !studio && !revealed;
 
+  // whether a point (canvas pixels) is on the spoiler: anywhere from its first
+  // line to its last, gaps between lines included, but not on the words that
+  // share its first and last lines
+  const inSpoiler = (point) => {
+    const rows = rowsRef.current;
+    if (!rows.length) return false;
+    const first = rows[0];
+    const last = rows[rows.length - 1];
+    if (point.y < first.top || point.y > last.top + last.h) return false;
+    if (point.y < first.top + first.h && point.x < first.left) return false;
+    if (point.y > last.top && point.x > last.right) return false;
+    return true;
+  };
+
   const handleRubDown = (event) => {
-    if (!canRub) return;
+    if (!canRub || !inSpoiler(pointFrom(event))) return;
+    event.preventDefault();
     rubbedRef.current = false;
     rubRef.current = { last: pointFrom(event), startX: event.clientX, startY: event.clientY };
     try {
@@ -442,16 +468,40 @@ const SmudgedSpoiler = ({ text }) => {
     rub.last = point;
   };
 
+  // a press and release without dragging is a tap: play the un-smudge
   const handleRubUp = () => {
+    const wasPress = rubRef.current && !rubbedRef.current;
     rubRef.current = null;
+    rubbedRef.current = false;
+    if (wasPress) reveal();
   };
 
+  // the rub listens on the whole paragraph, so pressing between the spoiler's
+  // lines works too; handlersRef keeps the listeners pointing at this render's
+  // handlers
+  const handlersRef = useRef({});
+  handlersRef.current = { down: handleRubDown, move: handleRubMove, up: handleRubUp };
+  useEffect(() => {
+    if (!canRub || !canvasRef.current) return undefined;
+    const area = canvasRef.current.parentElement;
+    const down = (e) => handlersRef.current.down(e);
+    const move = (e) => handlersRef.current.move(e);
+    const up = (e) => handlersRef.current.up(e);
+    area.classList.add("rub-area");
+    area.addEventListener("pointerdown", down);
+    area.addEventListener("pointermove", move);
+    area.addEventListener("pointerup", up);
+    area.addEventListener("pointercancel", up);
+    return () => {
+      area.classList.remove("rub-area");
+      area.removeEventListener("pointerdown", down);
+      area.removeEventListener("pointermove", move);
+      area.removeEventListener("pointerup", up);
+      area.removeEventListener("pointercancel", up);
+    };
+  }, [canRub]);
+
   const reveal = () => {
-    // the click that ends a rub isn't a tap
-    if (rubbedRef.current) {
-      rubbedRef.current = false;
-      return;
-    }
     if (studio || revealed) return;
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (usesCanvas && !reduceMotion) unsmudge();
@@ -486,12 +536,10 @@ const SmudgedSpoiler = ({ text }) => {
               tabIndex: 0,
               title: "Rub or tap to reveal",
               "aria-label": "Spoiler, hidden. Press to reveal.",
-              onClick: reveal,
+              // without the smudge canvas, a click reveals; with it, the
+              // paragraph's rub handlers turn a tap into the un-smudge
+              onClick: usesCanvas ? undefined : reveal,
               onKeyDown: handleKeyDown,
-              onPointerDown: handleRubDown,
-              onPointerMove: handleRubMove,
-              onPointerUp: handleRubUp,
-              onPointerCancel: handleRubUp,
             })}
       >
         {Array.from(text, (char, i) => (
