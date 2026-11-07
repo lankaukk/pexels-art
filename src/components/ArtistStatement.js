@@ -86,7 +86,7 @@ const ArtistStatement = () => {
 
     <p>
       This is image gen without AI. It’s color association without copying.
-      Though the images on Pexels are free to use anyway. These are real photos
+      (Not that Pexels would mind.) These are real photos
       by real people, collaged, recycled, and averaged with plain math.
     </p>
 
