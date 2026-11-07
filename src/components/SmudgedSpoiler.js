@@ -133,17 +133,23 @@ const SmudgedSpoiler = ({ text }) => {
       const pad = g.em * 0.35;
       const padLeft = n === 0 ? 0 : pad;
       const padRight = n === sorted.length - 1 ? 0 : pad;
+      // whole pixels, overlapping the next row, so no empty seam is left for
+      // the brush to drag along as a line
+      const top = Math.floor(row.top);
       ctx.fillRect(
-        row.left - padLeft,
-        row.top,
-        row.right - row.left + padLeft + padRight,
-        bottom - row.top
+        Math.floor(row.left - padLeft),
+        top,
+        Math.ceil(row.right - row.left + padLeft + padRight),
+        Math.ceil(bottom) - top + 2
       );
     });
 
     ctx.fillStyle = INK;
     ctx.font = g.font;
     ctx.textBaseline = "alphabetic";
+    ctx.strokeStyle = INK;
+    ctx.lineWidth = g.em * 0.06;
+    ctx.lineJoin = "round";
     const probe = ctx.measureText("Hg");
     g.chars.forEach((c) => {
       if (!c.char.trim()) return;
@@ -151,9 +157,16 @@ const SmudgedSpoiler = ({ text }) => {
       const baseline =
         c.y + (c.h + probe.fontBoundingBoxAscent - probe.fontBoundingBoxDescent) / 2;
       ctx.fillText(c.char, c.x, baseline);
+      // a hairline outline in the same grey makes the letters a touch heavier,
+      // so there's more ink than white to smudge
+      ctx.strokeText(c.char, c.x, baseline);
     });
 
-    brushRef.current = createSmudgeBrush(ctx, { size: g.em * BRUSH_EM });
+    brushRef.current = createSmudgeBrush(ctx, {
+      size: g.em * BRUSH_EM,
+      // dabs close together, so fast strokes don't leave faint ridges
+      spacing: 0.04,
+    });
     strokesRef.current.forEach((stroke) => {
       if (!stroke.length) return;
       brushRef.current.start(toCanvas(g, stroke[0]));
