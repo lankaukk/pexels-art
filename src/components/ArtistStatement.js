@@ -172,7 +172,7 @@ const ArtistStatement = () => {
     </p>
 
     <p>All of this to say:{" "}
-      <TextEffect effect="small">nothing matters</TextEffect>, so I framed some pixels.</p>
+      <TextEffect effect="small">nothing matters</TextEffect>. Average enough of anything and it turns grey. So I framed some pixels.</p>
 
     <p className="statement-date">
       <time dateTime="2026-11-07T00:22">12:22am Sat November 07, 2026</time>
