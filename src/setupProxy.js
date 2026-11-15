@@ -14,6 +14,12 @@ module.exports = function (app) {
       : next()
   );
   app.use("/pigeons", express.static(path.join(__dirname, "../public/pigeons")));
+  app.get("/flowers", (req, res, next) =>
+    req.path === "/flowers"
+      ? res.sendFile(path.join(__dirname, "../public/flowers/index.html"))
+      : next()
+  );
+  app.use("/flowers", express.static(path.join(__dirname, "../public/flowers")));
 
   app.get("/.netlify/functions/pexels", async (req, res) => {
     const result = await handler({ queryStringParameters: req.query });

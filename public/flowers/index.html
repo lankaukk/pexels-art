@@ -1,0 +1,832 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flowers · McKayla Lankau</title>
+<meta name="description" content="An ASCII Venus flytrap that grows as you scroll, and catches a bug.">
+<style>
+  :root { color-scheme: dark; }
+  html, body { margin: 0; background: #000; }
+  /* the page is tall only to give the scroll something to do; the plant stays
+     put on screen and grows as the page scrolls */
+  body { height: 600vh; }
+  /* the scroll comes to rest only on the story's beats (see BEATS) */
+  html { scroll-snap-type: y mandatory; }
+  .beat { position: absolute; left: 0; width: 1px; height: 1px; scroll-snap-align: start; }
+  canvas { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; }
+  .hint {
+    /* in the open middle of the screen, clear of the soil where the seedling
+       comes up */
+    position: fixed; left: 0; right: 0; top: 45%; text-align: center;
+    font: 12px/1 ui-monospace, Menlo, monospace; letter-spacing: 0.2em;
+    color: #3d6b45; transition: opacity 400ms ease; pointer-events: none;
+  }
+  .hint.is-gone { opacity: 0; }
+  /* the story's few words, one line per beat, near the top of the screen */
+  .caption {
+    position: fixed; left: 0; right: 0; top: 8vh; padding: 0 1rem; text-align: center;
+    font: 15px/1.4 ui-monospace, Menlo, monospace; letter-spacing: 0.08em;
+    color: #d8e8d0; opacity: 0; pointer-events: none;
+  }
+  @media (prefers-reduced-motion: reduce) { .hint { transition: none; } }
+</style>
+</head>
+<body>
+<canvas id="art" aria-label="An ASCII-art Venus flytrap that grows up from the bottom of the screen as you scroll"></canvas>
+<div class="hint" id="hint">scroll ↓</div>
+<p class="caption" id="caption" aria-live="polite"></p>
+<script>
+// One Venus flytrap leaf growing out of the ground as the page scrolls, then
+// catching a fly:
+//   a seedling's two tiny seed leaves poke out of the soil;
+//   a single leaf comes up narrow and curled, stretches, and unfurls flat;
+//   a small closed trap forms at its tip, swells, and opens;
+//   its teeth grow in and its inside blushes pink;
+//   a fly buzzes in, lands, and the trap snaps shut on it.
+//
+// It's drawn like an ASCII filter over a growing plant: the screen is a fixed
+// grid of characters, and every frame each cell looks up which character of
+// the finished drawing (flytrap.txt) lands there as the leaf and trap are
+// stretched, bent and scaled to their shape at that point in the scroll.
+(async () => {
+  const text = await fetch("/flowers/flytrap.txt").then((r) => r.text());
+  const art = text.replace(/\n$/, "").split("\n").map((line) => [...line]);
+  const at = (x, y) => (art[y] && art[y][x]) || " ";
+
+  // the drawing's parts, in its own rows and columns: the trap (teeth along
+  // its top) sits on the leaf, which rises from the ground
+  const TEETH_BELOW = 17; // rows above this are the trap's teeth
+  const isTrap = (x, y) => y <= 65 || (y <= 67 && x >= 50);
+  const BASE = { x: 27, y: 94 }; // where the leaf meets the ground
+  const JOINT = { x: 38, y: 66 }; // where the trap sits on the leaf
+  // each trap row's left edge (the hinge side, where the near lobe's rim is)
+  // and right edge (the far lobe's rim)
+  const trapEdges = art.map((line, y) => {
+    let l = -1, r = -1;
+    line.forEach((ch, x) => {
+      if (ch === " " || !isTrap(x, y)) return;
+      if (l < 0) l = x;
+      r = x;
+    });
+    return l < 0 ? null : { l, r };
+  });
+  // and each leaf row's left and right edges
+  const leafEdges = art.map((line, y) => {
+    let l = -1, r = -1;
+    line.forEach((ch, x) => {
+      if (ch === " " || isTrap(x, y)) return;
+      if (l < 0) l = x;
+      r = x;
+    });
+    return l < 0 ? null : { l, r };
+  });
+  const MOUTH = { x: 54, y: 34 }; // the middle of the open trap, where the fly lands
+  const TRAP_HALF = { x: 40, y: 31 }; // about half the trap's width and height
+
+  // the grid drawn on screen, in the drawing's coordinates, with room for the
+  // ground below and the fly to come in from the right
+  const GRID = { left: 4, right: 112, top: 2, bottom: 97 };
+  const GROUND = 95;
+  const MIDDLE = (GRID.left + GRID.right) / 2; // the middle of the soil
+
+  // characters from faintest to densest
+  const RAMP = "›—{ízÏü6ÇÞGgÅ";
+  const level = (ch) => Math.max(0, RAMP.indexOf(ch));
+
+  const clamp = (x) => Math.min(1, Math.max(0, x));
+  const ease = (x) => { x = clamp(x); return x * x * (3 - 2 * x); };
+  const between = (p, a, b) => ease((p - a) / (b - a));
+
+  // how far along each part is at scroll position p (0..1)
+  const stages = (p) => {
+    const close = between(p, 0.9, 0.94);
+    return {
+      seedling: between(p, 0.01, 0.08),
+      seedlingFade: 1 - between(p, 0.3, 0.45),
+      leafLength: 0.03 + 0.97 * between(p, 0.07, 0.45),
+      leafWidth: 0.1 + 0.9 * between(p, 0.15, 0.55), // unfurling
+      curl: 1 - between(p, 0.1, 0.52), // the young leaf bends, then straightens
+      bud: between(p, 0.36, 0.6),
+      // opens, then snaps most of the way shut on the fly
+      open: between(p, 0.52, 0.7),
+      close,
+      teeth: between(p, 0.62, 0.76),
+      blush: between(p, 0.56, 0.82),
+      fly: between(p, 0.76, 0.88), // flying in
+    };
+  };
+
+  // Colors. The leaf is green, a little paler where it's young. The trap is
+  // green outside and at its rim and teeth; its inside blushes pink, deepest
+  // in the middle and fading out toward the rim and the hinge, with soft
+  // blotches so it isn't a clean gradient
+  const GREEN_DIM = [34, 84, 40], GREEN = [126, 214, 88], PINK = [246, 86, 138];
+  const SOIL = [92, 66, 44];
+  const mix = (a, b, t) => a.map((v, i) => Math.round(v + (b[i] - v) * t));
+  const blotch = (x, y) =>
+    0.5 + 0.25 * Math.sin(x * 0.31 + y * 0.17) + 0.25 * Math.sin(x * 0.11 - y * 0.29 + 1.7);
+  const pinkAt = (sx, sy, k, blush) => {
+    const dx = (sx - MOUTH.x) / TRAP_HALF.x;
+    const dy = (sy - MOUTH.y) / TRAP_HALF.y;
+    const inside = 1 - between(Math.hypot(dx, dy), 0.3, 1.05);
+    const dense = between(k, 0.1, 0.4); // the faintest characters are the rim
+    return clamp(blush * inside * dense * (0.65 + 0.5 * blotch(sx, sy)));
+  };
+
+  // the opening, before anything grows: how much of the scroll it takes, and
+  // how many rows higher the ground starts
+  const INTRO = 0.18;
+  const RAISED = 30;
+
+  // the seed
+  const SEED = ["‚6‚", "›Þ‹"];
+
+  // the seed's roots: a wandering taproot with side roots branching off it,
+  // as cells relative to where the seed lands, in the order they grow
+  const roots = [];
+  {
+    const add = (x, y, dx) => roots.push({ x, y, ch: dx < 0 ? "/" : dx > 0 ? "\\" : "|" });
+    let x = 0;
+    const tap = [];
+    for (let y = 1; y <= 18; y += 1) {
+      const dx = Math.random() < 0.25 ? (Math.random() < 0.5 ? -1 : 1) : 0;
+      x += dx;
+      add(x, y, dx);
+      tap.push({ x, y });
+    }
+    [3, 6, 9, 13].forEach((at, i) => {
+      const side = i % 2 ? 1 : -1;
+      let { x: bx, y: by } = tap[at];
+      const length = 4 + ((Math.random() * 5) | 0);
+      for (let j = 0; j < length; j += 1) {
+        bx += side;
+        if (j % 2) by += 1;
+        add(bx, by, side > 0 ? 1 : -1);
+      }
+    });
+    // grow outward from the seed: nearer cells first
+    roots.sort((a, b) => a.y + Math.abs(a.x) * 0.5 - (b.y + Math.abs(b.x) * 0.5));
+  }
+
+  // raindrops: where across the screen, how fast, and when in the shower each
+  // one joins (share: lighter rain shows only some of them)
+  const raindrops = Array.from({ length: 240 }, () => ({
+    x: Math.random(),
+    speed: 38 + Math.random() * 26,
+    phase: Math.random() * 200,
+    share: Math.random(),
+    ch: Math.random() < 0.7 ? "|" : "'",
+    splash: Math.random() < 0.5 ? "˙" : "·",
+  }));
+
+  // a seedling's two seed leaves on a tiny stalk, drawn over the ground
+  const SEEDLING = [
+    " ›züü—   —üüz› ",
+    "   —{üí íü{—   ",
+    "      {í{      ",
+  ];
+
+  // the fly (fly.txt), drawn in its full detail in smaller type than the
+  // plant (FLY_SIZE of its character size), so it's small but stays sharp.
+  // Two frames: wings up, and wings swept down mid-flap
+  const flyText = await fetch("/flowers/fly.txt").then((r) => r.text());
+  const flyArt = flyText.replace(/\n$/, "").split("\n").map((line) => [...line]);
+  const STEP = 1;
+  const kindOf = (ch, x, y) => {
+    if ("£¢".includes(ch) && x < 26 && y >= 12 && y <= 21) return "eye";
+    if ("÷¹`".includes(ch)) return "wing";
+    if (ch === "q") return "leg";
+    return "body";
+  };
+  const RANK = { eye: 4, body: 3, leg: 2, wing: 1 };
+  const flyCells = [];
+  for (let y = 0; y < flyArt.length; y += STEP) {
+    for (let x = 0; x < 100; x += STEP) {
+      let best = null;
+      for (let dy = 0; dy < STEP; dy += 1) {
+        for (let dx = 0; dx < STEP; dx += 1) {
+          const ch = (flyArt[y + dy] && flyArt[y + dy][x + dx]) || " ";
+          if (ch === " ") continue;
+          const kind = kindOf(ch, x + dx, y + dy);
+          if (!best || RANK[kind] > RANK[best.kind]) best = { ch, kind };
+        }
+      }
+      if (best) flyCells.push({ x: x / STEP, y: y / STEP, ...best, upper: y < 10 });
+    }
+  }
+  const FLY_CENTER = { x: 40 / STEP, y: 20 / STEP }; // the middle of its body
+  const WING_ROOT = 10 / STEP; // where the upper wing meets the body
+  const FLY = [
+    flyCells,
+    flyCells.map((c) => (c.kind === "wing" && c.upper
+      ? { ...c, y: Math.round(WING_ROOT + (c.y - WING_ROOT) * 0.3) } : c)),
+  ];
+  const FLY_SIZE = 0.34;
+  const FLY_COLORS = {
+    eye: [225, 40, 50],
+    body: [150, 150, 150],
+    leg: [105, 105, 105],
+    wing: [140, 170, 190],
+  };
+
+  // The same fly, squashed flat and seen from above (once it's caught): built
+  // from its own characters, so it reads as the same bug. Shapes in rows,
+  // with columns 0.6 of a row wide, like the characters themselves
+  const TOP_FLY = [];
+  {
+    const W = 46, H = 42;
+    const inEllipse = (x, y, cx, cy, rx, ry, a = 0) => {
+      const dx = x - cx, dy = y - cy;
+      const u = dx * Math.cos(a) + dy * Math.sin(a);
+      const v = -dx * Math.sin(a) + dy * Math.cos(a);
+      return (u * u) / (rx * rx) + (v * v) / (ry * ry);
+    };
+    const nearSegment = (x, y, ax, ay, bx, by) => {
+      const t = Math.max(0, Math.min(1, ((x - ax) * (bx - ax) + (y - ay) * (by - ay)) / ((bx - ax) ** 2 + (by - ay) ** 2)));
+      return Math.hypot(x - (ax + t * (bx - ax)), y - (ay + t * (by - ay)));
+    };
+    // three legs a side, each [hip, knee, foot] as x, y pairs (right side;
+    // the left mirrors it): the front pair reaching forward, the middle out,
+    // the back pair trailing down beside the body, clear of the wings' edges
+    const legs = [];
+    [
+      [3, -8.5, 8, -11.5, 10, -16.5],
+      [4, -6, 10, -5.5, 13.5, -8.5],
+      [4, -3, 7.5, 5, 6.5, 15.5],
+    ].forEach(([ax, ay, bx, by, cx, cy]) => {
+      [1, -1].forEach((side) => legs.push([side * ax, ay, side * bx, by, side * cx, cy]));
+    });
+    for (let row = 0; row < H; row += 1) {
+      for (let col = 0; col < W; col += 1) {
+        const x = (col - W / 2) * 0.6, y = row - H / 2;
+        let kind = null, ch = " ";
+        const eye = Math.min(inEllipse(x, y, -2.7, -15, 2.3, 2.3), inEllipse(x, y, 2.7, -15, 2.3, 2.3));
+        const head = inEllipse(x, y, 0, -14, 4.6, 3.3);
+        const thorax = inEllipse(x, y, 0, -7.5, 6.4, 4.8);
+        const abdomen = inEllipse(x, y, 0, 3, 5.8, 8.5);
+        const wing = Math.min(inEllipse(x, y, -8.6, 1, 4.2, 11.5, 0.42), inEllipse(x, y, 8.6, 1, 4.2, 11.5, -0.42));
+        const leg = Math.min(...legs.map(([ax, ay, bx, by, cx, cy]) =>
+          Math.min(nearSegment(x, y, ax, ay, bx, by), nearSegment(x, y, bx, by, cx, cy))));
+        if (eye <= 1) { kind = "eye"; ch = "£"; }
+        else if (Math.min(head, thorax, abdomen) <= 1) {
+          kind = "body";
+          const edge = Math.min(head, thorax, abdomen) > 0.7;
+          // the abdomen's bands
+          ch = edge ? "b" : abdomen <= 1 && y > -1 && Math.round(y) % 3 === 0 ? "q" : "é";
+        } else if (leg < 0.55) { kind = "leg"; ch = "q"; }
+        else if (wing <= 1) { kind = "wing"; ch = wing > 0.75 ? "¹" : "÷"; }
+        if (kind) TOP_FLY.push({ x: col - W / 2, y: row - H / 2, ch, kind });
+      }
+    }
+  }
+
+  // the ground: a ragged line of soil, thicker near the plant
+  // deep enough to reach the bottom of the screen while the ground is raised,
+  // and wide enough to reach its sides
+  const soil = [];
+  for (let x = GRID.left - 30; x <= GRID.right + 30; x += 1) {
+    const near = 1 - Math.min(1, Math.abs(x - MIDDLE) / 45);
+    for (let y = GROUND; y <= GRID.bottom + RAISED + 2; y += 1) {
+      const chance = y === GROUND ? 0.45 + 0.45 * near : 0.3 + 0.15 * near;
+      if (Math.random() < chance) soil.push({ x, y, ch: ".,·:_"[(Math.random() * 5) | 0] });
+    }
+  }
+
+  const canvas = document.getElementById("art");
+  const ctx = canvas.getContext("2d");
+  const hint = document.getElementById("hint");
+  const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const ASPECT = 0.6; // a monospace character's width for its height
+  const cols = GRID.right - GRID.left + 1;
+  const rows = GRID.bottom - GRID.top + 1;
+  let cell = 10, originX = 0, originY = 0;
+
+  // fit the grid to the screen, standing on the bottom edge
+  const layout = () => {
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = innerWidth * dpr;
+    canvas.height = innerHeight * dpr;
+    const pad = Math.min(innerWidth, innerHeight) * 0.04;
+    cell = Math.min((innerWidth - pad * 2) / (cols * ASPECT), (innerHeight - pad) / rows);
+    originX = (innerWidth - cols * cell * ASPECT) / 2;
+    originY = innerHeight - rows * cell;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.font = `${cell}px ui-monospace, Menlo, Consolas, monospace`;
+    ctx.textBaseline = "top";
+  };
+
+  // ?p=0.4 in the address pins the growth at that point, for checking a stage
+  const pinned = parseFloat(new URLSearchParams(location.search).get("p"));
+  const progress = () => {
+    if (!Number.isNaN(pinned)) return clamp(pinned);
+    const max = document.documentElement.scrollHeight - innerHeight;
+    return max > 0 ? clamp(scrollY / max) : 1;
+  };
+
+  // a few cells shimmer a step fainter now and then, so the plant looks alive
+  let flicker = new Map();
+  if (!reduceMotion) {
+    setInterval(() => {
+      flicker = new Map();
+      for (let i = 0; i < 120; i += 1) {
+        const x = GRID.left + ((Math.random() * cols) | 0);
+        const y = GRID.top + ((Math.random() * rows) | 0);
+        flicker.set(y * 1000 + x, 1 + ((Math.random() * 2) | 0));
+      }
+    }, 140);
+  }
+
+  // eased toward the scroll position, so growth glides instead of jumping
+  let shown = progress();
+  // scrolling back up, the fly turns around and flies off the way it came,
+  // rather than reversing; scrolling on, it turns back toward the trap
+  let flyAway = false;
+
+  // the story's words: each line shows for its stretch of the scroll, fading
+  // in and out at the ends
+  const CAPTIONS = [
+    // the opening line is already up when the page loads, and stays through
+    // the seed, the rain and the sprout
+    { from: 0, to: 0.3, text: "Every product starts small.", middle: true },
+    { from: 0.45, to: 0.655, text: "We iterate." }, // swaying through its growing turns
+    { from: 0.665, to: 0.8, text: "We open it up." }, // the trap opens
+    { from: 0.8, to: 0.915, text: "Bugs happen." }, // the fly arrives
+    { from: 0.94, to: 1.01, text: "I catch them." }, // snapped shut, stars streaming
+  ];
+
+  // The resting points of the story: the scroll snaps to these, so it always
+  // stops on a moment (never half-grown), and the growth plays in between
+  const BEATS = [0, 0.12, 0.27, 0.58, 0.73, 0.905, 1];
+  const SCROLL_SCREENS = 5; // the page's height beyond one screen, in screens
+  BEATS.forEach((beat) => {
+    const mark = document.createElement("div");
+    mark.className = "beat";
+    mark.style.top = `${beat * SCROLL_SCREENS * 100}vh`;
+    document.body.appendChild(mark);
+  });
+  const captionEl = document.getElementById("caption");
+  let captionText = "";
+  const showCaption = (p) => {
+    const line = CAPTIONS.find((c) => p >= c.from && p < c.to);
+    const text = line ? line.text : "";
+    if (text !== captionText) {
+      captionEl.textContent = text;
+      captionText = text;
+      // the opening lines sit in the middle of the open sky; once the plant
+      // fills the screen, the rest sit up top, clear of it
+      captionEl.style.top = line && line.middle ? "36vh" : "";
+    }
+    if (!line) { captionEl.style.opacity = 0; return; }
+    const edge = Math.min(0.015, (line.to - line.from) / 3);
+    // (no fade in for a line that's up from the start)
+    const fadeIn = line.from === 0 ? 1 : (p - line.from) / edge;
+    captionEl.style.opacity = Math.min(1, fadeIn, (line.to - p) / edge);
+  };
+
+  // Space behind the plant. Once it's fully grown, stars fade in and twinkle;
+  // once it's caught the fly, they streak past as if flying through space.
+  // Each star has a spot (x, y from -1 to 1) and a depth (z, 1 far to 0 near)
+  const STAR_CHARS = "·.+*";
+  const stars = Array.from({ length: 260 }, () => ({
+    x: Math.random() * 2 - 1,
+    y: Math.random() * 2 - 1,
+    z: 0.15 + Math.random() * 0.85,
+    ch: STAR_CHARS[(Math.random() * STAR_CHARS.length) | 0],
+    phase: Math.random() * 6.28,
+  }));
+  let lastTime = 0;
+  const drawStars = (t, dt, space, warp, centerY) => {
+    if (space <= 0.01) return;
+    // they stream from the fly's spot
+    const cx = innerWidth / 2, cy = centerY;
+    const spread = Math.max(innerWidth, innerHeight) * 0.55;
+    for (const star of stars) {
+      // at warp, stars rush toward you and are replaced far away
+      if (warp > 0 && !reduceMotion) {
+        star.z -= dt * (0.15 + 1.6 * warp);
+        if (star.z < 0.03) {
+          star.x = Math.random() * 2 - 1;
+          star.y = Math.random() * 2 - 1;
+          star.z = 1;
+        }
+      }
+      const px = cx + (star.x / star.z) * spread * 0.35;
+      const py = cy + (star.y / star.z) * spread * 0.35;
+      if (px < -20 || px > innerWidth + 20 || py < -20 || py > innerHeight + 20) continue;
+      const near = 1 - star.z;
+      const twinkle = reduceMotion ? 0.8 : 0.55 + 0.45 * Math.sin(t * (1.5 + star.phase) + star.phase * 3);
+      const alpha = space * (0.25 + 0.75 * near) * (warp > 0.2 ? 1 : twinkle);
+      // streaking: a dash along its path, angled away from the center
+      let ch = star.ch;
+      if (warp > 0.2) {
+        const angle = Math.atan2(py - cy, px - cx);
+        const a = ((angle + Math.PI) / Math.PI) * 4;
+        ch = "—\\|/—\\|/"[Math.round(a) % 8];
+      }
+      const size = cell * (0.5 + 1.3 * near * (warp > 0.2 ? 1.4 : 0.6));
+      ctx.font = `${size}px ui-monospace, Menlo, Consolas, monospace`;
+      ctx.fillStyle = `rgba(${200 + 55 * near},${210 + 45 * near},255,${alpha})`;
+      ctx.fillText(ch, px, py);
+    }
+    ctx.font = `${cell}px ui-monospace, Menlo, Consolas, monospace`;
+  };
+
+  const draw = (time) => {
+    const t = time / 1000;
+    const dt = Math.min(0.05, lastTime ? t - lastTime : 0);
+    lastTime = t;
+    const heading = progress() - shown;
+    if (Math.abs(heading) > 0.0005) flyAway = heading < 0;
+    shown += heading * (reduceMotion ? 1 : 0.1);
+    // the story's opening (the first INTRO of the scroll): a seed falls into
+    // the soil, rain falls on it; then the growing (g, 0..1) begins
+    const g = clamp((shown - INTRO) / (1 - INTRO));
+    const s = stages(g);
+    hint.classList.toggle("is-gone", shown > 0.02);
+    showCaption(shown);
+    ctx.clearRect(0, 0, innerWidth, innerHeight);
+    // as the leaf grows tall the view rises with it: everything sinks, so the
+    // soil and the flat bottom edge of the drawing drop out of sight below
+    // the ground starts high on the page and settles to the bottom as the
+    // rain ends
+    // (the sprout comes up while it's still high, then it sinks away)
+    const raised = RAISED * (1 - between(shown, INTRO * 0.8, INTRO + (1 - INTRO) * 0.3));
+    const sink = 12 * between(g, 0.22, 0.5) - raised;
+    // On a tall, narrow screen (a phone) the drawing fits the width and sits
+    // low, with sky above. As the plant grows, the view lifts so the trap,
+    // and in the end the caught fly, lands in the middle of the screen, where
+    // the stars stream from
+    const FOCUS = 0.45; // of the screen's height
+    const focusY = originY + (MOUTH.y + 12 - GRID.top) * cell; // the fly's spot, unlifted
+    const lift = Math.max(0, focusY - innerHeight * FOCUS) * between(g, 0.4, 0.75);
+    const toScreen = (x, y) => [originX + (x - GRID.left) * cell * ASPECT, originY + (y + sink - GRID.top) * cell - lift];
+    const put = (ch, x, y, color) => {
+      ctx.fillStyle = color;
+      ctx.fillText(ch, originX + (x - GRID.left) * cell * ASPECT, originY + (y + sink - GRID.top) * cell - lift);
+    };
+
+    drawStars(t, dt, between(g, 0.7, 0.8), between(g, 0.93, 0.98), focusY - lift);
+    // the soil darkens as the rain soaks in
+    const wet = between(shown, INTRO * 0.45, INTRO);
+    const soilColor = mix(SOIL, [62, 44, 30], wet * 0.6);
+    if (sink < 11.5) for (const d of soil) put(d.ch, d.x, d.y, `rgb(${soilColor})`);
+
+    // the seedling comes up in the middle of the soil; as the plant grows tall
+    // and leans right, its base drifts left to make room
+    // Once the trap snaps shut the plant is narrow again, so it slides back
+    // to the middle (its closed shape's middle is around column 35)
+    const shift = (MIDDLE - BASE.x) * (1 - between(g, 0.1, 0.62))
+      + (MIDDLE - 35) * between(g, 0.9, 0.97);
+
+    // the seed: drops from the top of the screen, speeding up as it falls,
+    // lands in the middle of the soil, and settles in
+    // the top edge of the window, in the drawing's rows (on a narrow screen
+    // the drawing sits low, with sky above it)
+    const topOfScreen = GRID.top - sink - originY / cell;
+    const fall = clamp((shown - INTRO * 0.04) / (INTRO * 0.26));
+    const settle = between(shown, INTRO * 0.32, INTRO * 0.45);
+    if (fall > 0 && settle < 1) {
+      const landY = GROUND - SEED.length;
+      const y = Math.round(topOfScreen + (landY - topOfScreen) * fall * fall + settle * SEED.length);
+      const x = Math.round(MIDDLE) - 1;
+      SEED.forEach((line, i) => {
+        [...line].forEach((ch, j) => {
+          if (ch === " " || y + i >= GROUND) return;
+          put(ch, x + j, y + i, `rgba(196,140,84,${1 - settle * 0.6})`);
+        });
+      });
+      // a little puff of dirt as it lands
+      if (fall >= 1 && settle < 0.6) {
+        const puff = 1 - settle / 0.6;
+        put(".", x - 2, GROUND - 1, `rgba(${SOIL},${puff})`);
+        put("'", x - 1, GROUND - 2, `rgba(${SOIL},${puff})`);
+        put("'", x + 3, GROUND - 2, `rgba(${SOIL},${puff})`);
+        put(".", x + 4, GROUND - 1, `rgba(${SOIL},${puff})`);
+      }
+    }
+
+    // the rain: blue drops falling across the whole width of the window,
+    // splashing where they hit the soil and soaking on down into it, fading
+    // as they go deeper
+    const rain = between(shown, INTRO * 0.4, INTRO * 0.55) * (1 - between(shown, INTRO * 0.85, INTRO));
+    if (rain > 0.01) {
+      const screenLeft = GRID.left - originX / (cell * ASPECT);
+      const screenRight = GRID.left + (innerWidth - originX) / (cell * ASPECT);
+      const SOAK = 24; // rows the drops sink into the soil before they're gone
+      const span = GROUND + SOAK - topOfScreen;
+      // the drops move with the scroll, not the clock: they fall as you
+      // scroll and hold still when you stop
+      const rainP = (shown - INTRO * 0.4) / (INTRO * 0.6);
+      for (const drop of raindrops) {
+        if (drop.share > rain) continue; // lighter rain, fewer drops
+        const y = topOfScreen + ((drop.phase + rainP * drop.speed * 3) % span);
+        const x = Math.round(screenLeft + drop.x * (screenRight - screenLeft + 8) - 4 + (y - topOfScreen) * 0.08);
+        const depth = y - GROUND;
+        if (Math.abs(depth + 0.5) < 0.8) {
+          put(drop.splash, x, GROUND - 1, `rgba(170,210,255,${rain})`);
+        } else if (depth > 0) {
+          // in the ground: still clearly blue, trickling down with a short wet
+          // trail behind it, fading out gently as it soaks deeper
+          const fade = Math.sqrt(1 - depth / SOAK);
+          // a dark gap in the soil behind it, so it reads through the dirt
+          const [gx, gy] = toScreen(x, Math.floor(y));
+          ctx.fillStyle = `rgba(0,0,0,${0.85 * fade * rain})`;
+          ctx.fillRect(gx - cell * 0.05, gy, cell * ASPECT * 1.1, cell);
+          put(drop.ch, x, Math.floor(y), `rgba(140,195,255,${fade * rain})`);
+          if (depth > 1.5) put("'", x, Math.floor(y) - 1, `rgba(90,140,220,${0.5 * fade * rain})`);
+        } else {
+          put(drop.ch, x, Math.floor(y), `rgba(110,175,255,${(0.8 + 0.2 * drop.share) * rain})`);
+        }
+      }
+    }
+
+    // the roots, spreading down into the soil from where the seed landed; they
+    // stay put under the plant
+    const rootGrow = between(shown, INTRO * 0.3, INTRO * 0.75);
+    if (rootGrow > 0 && sink < 11.5) { // (gone with the soil)
+      const count = Math.round(rootGrow * roots.length);
+      const rx = Math.round(BASE.x + shift);
+      for (let i = 0; i < count; i += 1) {
+        const r = roots[i];
+        put(r.ch, rx + r.x, GROUND + r.y, "rgb(214,192,150)");
+      }
+    }
+
+    // the seedling, rising out of the soil, then left small at the base
+    const seedAlpha = s.seedling * (0.35 + 0.65 * s.seedlingFade);
+    if (seedAlpha > 0.01) {
+      const lift = Math.round((1 - s.seedling) * SEEDLING.length);
+      SEEDLING.forEach((line, i) => {
+        const y = GROUND - SEEDLING.length + i + lift;
+        if (y >= GROUND) return;
+        [...line].forEach((ch, j) => {
+          if (ch === " ") return;
+          const c = mix(GREEN_DIM, GREEN, 0.5);
+          // the seed leaves nod as they come up
+          const nod = reduceMotion ? 0 : Math.sin(t * 1.6) * (SEEDLING.length - i) * 0.5;
+          put(ch, Math.round(BASE.x + shift + nod) - 7 + j, y, `rgba(${c},${seedAlpha})`);
+        });
+      });
+    }
+
+    // the leaf's growth: its top (where the trap sits) rises and leans while
+    // it's young
+    const leafTop = { x: BASE.x + (JOINT.x - BASE.x) * s.leafWidth, y: BASE.y + (JOINT.y - BASE.y) * s.leafLength };
+    const leafHeight = BASE.y - leafTop.y;
+    // how far it can lean grows with its height: a sprout a row or two tall
+    // comes straight up from the middle of the seedling, and only bends and
+    // wanders once it's tall enough to
+    const reach = clamp(leafHeight / 14);
+    const bend = s.curl * 9 * reach; // columns the young leaf's tip leans over
+    // while young it wanders: its tip circles slowly as it climbs, the way
+    // seedlings feel their way up, settling as the leaf matures
+    const youth = 1 - between(g, 0.38, 0.62);
+    // "iterate.": while the bud forms, the plant works at it, swaying side to
+    // side in big growing turns like a time-lapse. Scrolling turns it too, so
+    // it twists through its turns as you go; it settles as the trap opens
+    const iterating = between(g, 0.34, 0.44) * (1 - between(g, 0.6, 0.7));
+    const turns = (up) => Math.sin(g * 46 + t * 0.8 + up * 0.9) * 9 * up
+      + Math.sin(g * 23 - t * 1.7) * 2.5;
+    const wanderAt = (up) => (reduceMotion ? 0
+      : (Math.sin(t * 1.1 + up * 2.2) * 4 + Math.sin(t * 0.47 + 1.3) * 3) * youth * reach
+        + turns(up) * iterating);
+    const tip = { x: leafTop.x + bend + wanderAt(1), y: leafTop.y };
+    // how folded shut the trap is on its hinge: a bud starts shut and opens,
+    // and the snap shuts it again (shuddering a little)
+    const fold = Math.max(1 - s.open, s.close);
+    const shudder = s.close > 0 && s.close < 1 ? Math.sin(t * 60) * 0.6 * (1 - s.close) : 0;
+    const trapW = s.bud;
+    const trapH = s.bud * (1 - 0.06 * fold);
+    const teethFrom = TEETH_BELOW - s.teeth * (TEETH_BELOW - 3);
+
+    // Once it has caught the fly, a light glows from behind the closed trap,
+    // and the fly shows through it as a dark shadow
+    const backlit = between(g, 0.94, 0.99);
+    const mouthEdge = trapEdges[MOUTH.y];
+    const caught = {
+      x: tip.x + shift + (mouthEdge.l + (mouthEdge.r - mouthEdge.l) * 0.28 - JOINT.x) * trapW,
+      y: tip.y + (MOUTH.y - JOINT.y) * trapH,
+    };
+    if (backlit > 0.01) {
+      const [gx, gy] = toScreen(caught.x, caught.y);
+      const radius = cell * 26;
+      const glow = ctx.createRadialGradient(gx, gy, 0, gx, gy, radius);
+      glow.addColorStop(0, `rgba(255,236,190,${0.55 * backlit})`);
+      glow.addColorStop(0.5, `rgba(255,200,150,${0.18 * backlit})`);
+      glow.addColorStop(1, "rgba(255,200,150,0)");
+      ctx.fillStyle = glow;
+      ctx.fillRect(gx - radius, gy - radius, radius * 2, radius * 2);
+    }
+
+    if (s.leafLength > 0.031 || s.bud > 0) {
+      // once the soil is gone the leaf runs on down past the bottom of the
+      // screen (its drawing ends in a flat edge, kept out of sight)
+      const soilGone = sink >= 11.5;
+      const lastRow = soilGone
+        ? Math.ceil(GRID.top - sink + (innerHeight + lift - originY) / cell) + 1
+        : GROUND - 1;
+      for (let y = GRID.top; y <= lastRow; y += 1) {
+        // the plant sways from its base, the higher the more; less once shut
+        const height = clamp((BASE.y - y) / (BASE.y - 4));
+        const calm = 1 - 0.7 * s.close;
+        const sway = reduceMotion ? 0
+          : (Math.sin(t * 0.9 + y * 0.045) * height * height * 1.6
+            + Math.sin(t * 2.3 + y * 0.2) * height * 0.2) * calm;
+        // the young leaf's lean, growing toward its tip
+        const up = leafHeight > 0 ? clamp((BASE.y - y) / leafHeight) : 0;
+        const lean = (bend + wanderAt(up)) * up * up;
+        for (let x = GRID.left; x <= GRID.right; x += 1) {
+          const px = x - sway - shift;
+          let ch = " ", part = null, sx = 0, sy = 0;
+          // the trap, scaled about the leaf's tip
+          if (trapH > 0.02) {
+            const u = JOINT.x + (px - shudder - tip.x) / trapW;
+            sy = Math.round(JOINT.y + (y - tip.y) / trapH);
+            sx = Math.round(u);
+            let c = at(sx, sy);
+            let lobe = null; // "near": the closing lobe's green outside
+            const edge = trapEdges[sy];
+            if (fold > 0 && edge) {
+              // Folded on its hinge (the left edge): the far lobe turns away
+              // and foreshortens toward the hinge, and the near lobe lies
+              // across in front of it, showing its green outside, with its
+              // teeth along the leading edge. Opening, the near lobe swings
+              // back and the far one turns to face you; snapping shut reverses it
+              const width = edge.r - edge.l;
+              const farRight = edge.l + width * (1 - 0.5 * fold);
+              const cover = edge.l + (farRight - edge.l) * 0.94 * fold;
+              // (the wisp at the trap's bottom right, rows 66-67, belongs to the
+              // open trap; folded, it would hang off on its own)
+              if (u > farRight + 0.5 || u < edge.l - 0.5 || (sy >= 66 && fold > 0.2)) {
+                c = " ";
+              } else if (u <= cover) {
+                // the near lobe's outside, its texture mirrored from the far one
+                const back = Math.round(edge.r - (u - edge.l) * 0.8);
+                c = at(back, sy);
+                if (c === " " || !isTrap(back, sy)) c = "z";
+                lobe = "near";
+                if (cover - u < 1.2 && s.teeth > 0.05) {
+                  c = sy % 2 ? "›" : "‹"; // its teeth along the edge, interlocking
+                  lobe = "tooth";
+                }
+              } else {
+                sx = Math.round(edge.l + (u - edge.l) / (1 - 0.5 * fold));
+                c = at(sx, sy);
+              }
+            }
+            // before the teeth grow in, only their faint characters are held
+            // back, so the bud's top stays its natural rounded shape
+            const toothNotYet = sy <= TEETH_BELOW && sy < teethFrom && level(c) <= 4;
+            if (c !== " " && (lobe || isTrap(sx, sy)) && !toothNotYet) {
+              ch = c;
+              part = lobe || (sy <= TEETH_BELOW ? "teeth" : "trap");
+            }
+          }
+          // the leaf, stretched up from the ground, unfurling, and bent
+          if (!part) {
+            sx = Math.round(BASE.x + (px - lean - BASE.x) / s.leafWidth);
+            sy = Math.round(BASE.y + (y - BASE.y) / s.leafLength);
+            if (soilGone && sy >= BASE.y) {
+              // below the drawing's last row: the stalk that holds it all up
+              // carries on down, curving smoothly from the leaf's slant into
+              // straight
+              const d = sy - (BASE.y - 1);
+              // each edge starts at the slant the leaf's edge already has (left
+              // about 0.37 columns a row, right about 0.75) and eases
+              // gradually to straight, so there's no kink at the join
+              const bendTo = (slope, over) => {
+                const k = Math.min(d, over);
+                return slope * (k - (k * k) / (2 * over));
+              };
+              const left = 13 - bendTo(0.37, 24), right = 39 - bendTo(0.75, 26);
+              // each stalk row is one of the leaf's own bottom rows, kept as
+              // drawn: its left edge and its right fringe intact, trimmed from
+              // the middle to fit the stalk's width, so the shading carries on
+              const src = BASE.y - 1 - ((d * 5) % 9); // one of the last 9 rows
+              const edge = leafEdges[src];
+              const k = Math.round(sx - left);
+              const width = Math.round(right - left);
+              if (edge && k >= 0 && k <= width) {
+                const FRINGE = 4; // the right edge's characters, kept whole
+                const col = k > width - FRINGE ? edge.r - (width - k) : edge.l + k;
+                const c = at(col, src);
+                if (c !== " ") { ch = c; part = "leaf"; }
+              }
+            } else {
+              if (soilGone) sy = Math.min(sy, BASE.y - 1);
+              const c = at(sx, sy);
+              if (c !== " " && !isTrap(sx, sy)) { ch = c; part = "leaf"; }
+            }
+          }
+          if (!part) continue;
+          let lvl = level(ch);
+          const dim = flicker.get(y * 1000 + x);
+          if (dim) { lvl = Math.max(0, lvl - dim); ch = RAMP[lvl]; }
+          const k = lvl / (RAMP.length - 1);
+          // young growth is paler; the leaf darkens as it matures
+          let c = mix(GREEN_DIM, GREEN, k);
+          c = mix(c, [170, 230, 140], 0.35 * (1 - s.leafWidth));
+          // the teeth rows use the same soft falloff, so the pink has no edge
+          if (part === "near") c = mix(c, GREEN, 0.25); // the outside is green
+          else if (part !== "leaf") c = mix(c, PINK, pinkAt(sx, sy, k, s.blush));
+          // the spiky bits, the trap's faintest characters (its teeth and rim
+          // hairs): a vivid pale yellow-green, drawn heavier (twice, a hair
+          // apart), so they stand out sharply from the trap behind them
+          if (part === "tooth" || (part !== "leaf" && part !== "near" && lvl <= 2)) {
+            c = mix([228, 255, 120], [255, 255, 235], 0.25 * s.teeth);
+            put(ch, x + 0.06, y, `rgb(${c})`);
+          }
+          put(ch, x, y, `rgb(${c})`);
+        }
+      }
+    }
+
+    // the caught fly inside the shut trap, seen from above as a shadow
+    // against the light behind it: its own characters, darkened
+    if (backlit > 0.01) {
+      const w = cell * ASPECT * FLY_SIZE, h = cell * FLY_SIZE;
+      ctx.font = `${cell * FLY_SIZE}px ui-monospace, Menlo, Consolas, monospace`;
+      // turned about 15° to the left (in true proportions, since a column is
+      // narrower than a row), then placed in the trap
+      const TILT = (-15 * Math.PI) / 180;
+      const placed = (c) => {
+        const X = c.x * FLY_SIZE * ASPECT, Y = c.y * FLY_SIZE;
+        const rx = X * Math.cos(TILT) - Y * Math.sin(TILT);
+        const ry = X * Math.sin(TILT) + Y * Math.cos(TILT);
+        return toScreen(caught.x + rx / ASPECT, caught.y + ry);
+      };
+      // a soft dark shape behind it, so it reads as one body through the leaf;
+      // lighter behind the see-through wings
+      for (const c of TOP_FLY) {
+        ctx.fillStyle = `rgba(6,12,5,${(c.kind === "wing" ? 0.28 : 0.55) * backlit})`;
+        const [px, py] = placed(c);
+        ctx.fillRect(px - w * 0.2, py - h * 0.2, w * 1.4, h * 1.4);
+      }
+      for (const c of TOP_FLY) {
+        // the wings stay pale and veined, so they read against the dark body
+        const shade = c.kind === "eye" ? [110, 18, 24]
+          : c.kind === "wing" ? [150, 175, 190]
+            : mix(FLY_COLORS[c.kind], [0, 0, 0], 0.72);
+        const a = (c.kind === "wing" ? 0.7 : 0.95) * backlit;
+        const [px, py] = placed(c);
+        ctx.fillStyle = `rgba(${shade},${a})`;
+        ctx.fillText(c.ch, px, py);
+      }
+      ctx.font = `${cell}px ui-monospace, Menlo, Consolas, monospace`;
+    }
+
+    // the fly: buzzes in from the right along a wobbly path, hovers over the
+    // trap's mouth, and is gone once the trap shuts on it
+    if (s.fly > 0 && s.close < 0.5) {
+      const mouth = {
+        x: tip.x + shift + (MOUTH.x - JOINT.x) * trapW,
+        y: tip.y + (MOUTH.y - JOINT.y) * trapH,
+      };
+      // starts fully off the right edge of the screen (the grid may not reach
+      // it), so it flies in rather than appearing
+      const screenRight = GRID.left + (innerWidth - originX) / (cell * ASPECT);
+      const startX = screenRight + (FLY_CENTER.x + 4) * FLY_SIZE, startY = 18;
+      const f = s.fly;
+      let fx = startX + (mouth.x - startX) * f + Math.sin(f * 14) * 5 * (1 - f);
+      let fy = startY + (mouth.y - startY) * f + Math.sin(f * 9 + 1) * 7 * (1 - f);
+      // landed: a little restless buzz in place
+      if (f >= 1 && !reduceMotion) {
+        fx += Math.sin(t * 7) * 0.6;
+        fy += Math.sin(t * 11) * 0.3;
+      }
+      const frame = FLY[reduceMotion ? 0 : Math.floor(t * 18) % 2];
+      const alpha = 1 - s.close * 2;
+      // facing left toward the trap, or flipped to face right as it escapes
+      const face = flyAway ? -1 : 1;
+      const MIRROR = { "/": "\\", "\\": "/", "(": ")", ")": "(", "‹": "›", "›": "‹", "{": "}", "}": "{" };
+      ctx.font = `${cell * FLY_SIZE}px ui-monospace, Menlo, Consolas, monospace`;
+      // a dark shadow behind it, so it reads against the busy trap
+      const w = cell * ASPECT * FLY_SIZE, h = cell * FLY_SIZE;
+      for (const c of frame) {
+        ctx.fillStyle = `rgba(0,0,0,${(c.kind === "wing" ? 0.45 : 0.85) * alpha})`;
+        ctx.fillRect(
+          originX + (fx + face * (c.x - FLY_CENTER.x) * FLY_SIZE - GRID.left) * cell * ASPECT - w * 0.3,
+          originY + (fy + (c.y - FLY_CENTER.y) * FLY_SIZE + sink - GRID.top) * cell - lift - h * 0.3,
+          w * 1.6, h * 1.6);
+      }
+      for (const c of frame) {
+        // its wings are see-through
+        const a = c.kind === "wing" ? alpha * 0.55 : alpha;
+        const ch = face < 0 ? MIRROR[c.ch] || c.ch : c.ch;
+        put(ch, fx + face * (c.x - FLY_CENTER.x) * FLY_SIZE, fy + (c.y - FLY_CENTER.y) * FLY_SIZE,
+          `rgba(${FLY_COLORS[c.kind]},${a})`);
+      }
+      ctx.font = `${cell}px ui-monospace, Menlo, Consolas, monospace`;
+    }
+    requestAnimationFrame(draw);
+  };
+
+  addEventListener("resize", layout);
+  if (document.fonts) document.fonts.ready.then(layout);
+  layout();
+  requestAnimationFrame(draw);
+})();
+</script>
+</body>
+</html>

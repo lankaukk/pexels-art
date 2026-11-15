@@ -9,3 +9,6 @@
 # /pigeons without a trailing slash (/pigeons/ works too); its images use full
 # /pigeons/img/ paths, so either address finds them
 /pigeons       /pigeons/index.html   200!
+
+# the ASCII flytrap that grows as you scroll, a plain page in public/flowers
+/flowers       /flowers/index.html   200!
