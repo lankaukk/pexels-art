@@ -282,16 +282,20 @@
   }
 
   // the ground: a ragged line of soil, thicker near the plant
-  // deep enough to reach the bottom of the screen while the ground is raised,
-  // and wide enough to reach its sides
-  const soil = [];
-  for (let x = GRID.left - 30; x <= GRID.right + 30; x += 1) {
-    const near = 1 - Math.min(1, Math.abs(x - MIDDLE) / 45);
-    for (let y = GROUND; y <= GRID.bottom + RAISED + 2; y += 1) {
-      const chance = y === GROUND ? 0.45 + 0.45 * near : 0.3 + 0.15 * near;
-      if (Math.random() < chance) soil.push({ x, y, ch: ".,·:_"[(Math.random() * 5) | 0] });
+  // The soil: deep enough to reach the bottom of the screen while the ground is
+  // raised, and as wide as the window (rebuilt in layout(), once the window's
+  // edges are known), thicker near the middle
+  let soil = [];
+  const buildSoil = (fromX, toX) => {
+    soil = [];
+    for (let x = Math.floor(fromX) - 2; x <= Math.ceil(toX) + 2; x += 1) {
+      const near = 1 - Math.min(1, Math.abs(x - MIDDLE) / 45);
+      for (let y = GROUND; y <= GRID.bottom + RAISED + 2; y += 1) {
+        const chance = y === GROUND ? 0.45 + 0.45 * near : 0.3 + 0.15 * near;
+        if (Math.random() < chance) soil.push({ x, y, ch: ".,·:_"[(Math.random() * 5) | 0] });
+      }
     }
-  }
+  };
 
   const canvas = document.getElementById("art");
   const ctx = canvas.getContext("2d");
@@ -314,6 +318,8 @@
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.font = `${cell}px ui-monospace, Menlo, Consolas, monospace`;
     ctx.textBaseline = "top";
+    // the window's left and right edges, in the drawing's columns
+    buildSoil(GRID.left - originX / (cell * ASPECT), GRID.left + (innerWidth - originX) / (cell * ASPECT));
   };
 
   // ?p=0.4 in the address pins the growth at that point, for checking a stage
