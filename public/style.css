@@ -865,13 +865,14 @@ textarea.search {
     }
 }
 
-/* Listen's play and pause icons, stacked; the one in use fades and scales in */
-.bar-play-icons {
+/* two icons stacked in one spot (play and pause, link and checkmark); the one
+   in use fades and pops in */
+.bar-swap {
     display: grid;
     flex: none;
 }
 
-.bar-play-icons > span {
+.bar-swap > span {
     grid-area: 1 / 1;
     display: flex;
     opacity: 0;
@@ -879,7 +880,7 @@ textarea.search {
     transition: opacity 180ms ease-out, transform 220ms cubic-bezier(0.3, 1.4, 0.5, 1);
 }
 
-.bar-play-icons > span.is-shown {
+.bar-swap > span.is-shown {
     opacity: 1;
     transform: none;
 }
@@ -929,7 +930,7 @@ textarea.search {
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .bar-play-icons > span,
+    .bar-swap > span,
     .bar-label,
     .bar-controls,
     .bar-controls > *,

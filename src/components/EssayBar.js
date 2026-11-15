@@ -479,7 +479,7 @@ const EssayBar = () => {
             aria-label={state === "idle" ? undefined : state === "playing" ? "Pause" : "Resume"}
           >
             {/* play and pause are both drawn, and cross-fade as they swap */}
-            <span className="bar-play-icons">
+            <span className="bar-swap">
               <span className={state === "playing" ? "" : "is-shown"}>
                 <Icon name="play" />
               </span>
@@ -561,8 +561,20 @@ const EssayBar = () => {
           aria-label={native ? "Share" : copied ? "Link copied" : "Copy link"}
           title={native ? "Share" : copied ? "Link copied" : "Copy link"}
         >
-          {/* a checkmark for a moment after copying */}
-          <Icon name={native ? "share" : copied ? "check" : "link"} />
+          {/* a checkmark for a moment after copying; the two swap with the same
+              fade and pop as play and pause */}
+          {native ? (
+            <Icon name="share" />
+          ) : (
+            <span className="bar-swap">
+              <span className={copied ? "" : "is-shown"}>
+                <Icon name="link" />
+              </span>
+              <span className={copied ? "is-shown" : ""}>
+                <Icon name="check" />
+              </span>
+            </span>
+          )}
         </button>
       </div>
     </div>
