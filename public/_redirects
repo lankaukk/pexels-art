@@ -4,3 +4,7 @@
 /              /notapipe       301!
 /notapipe      /index.html     200
 /notapipe/*    /:splat         200
+
+# the balcony pigeon family tree is a plain page in public/pigeons; add the
+# trailing slash so its img/ paths resolve
+/pigeons       /pigeons/       301

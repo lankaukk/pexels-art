@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Balcony Pigeon Family Tree</title>
+<style>
+  :root{--ink:#1d1d1f;--muted:#76767a;--line:#bdbdc2;--bg:#fff}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:14px}
+  main{max-width:860px;margin:0 auto;padding:16px 16px 56px}
+  h1{font-size:28px;font-weight:600;margin:0 0 4px;letter-spacing:-.01em}
+  .sub{color:var(--muted);margin:0 0 40px}
+  h2{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);
+    margin:0 0 20px;text-align:center}
+  .tree{position:relative}
+  svg.wires{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+  svg.wires path{fill:none;stroke:var(--line);stroke-width:1.5}
+  svg.wires path.guess{stroke-dasharray:4 5}
+  .row{position:relative;display:flex;justify-content:center;gap:clamp(36px,10vw,96px);margin-bottom:56px}
+  .bird{width:clamp(88px,24vw,128px);text-align:center;position:relative;z-index:1}
+  .pic{width:100%;aspect-ratio:1;border-radius:50%;overflow:hidden;background:#eee}
+  .pic img{width:100%;height:100%;object-fit:cover;display:block}
+  .picwrap{position:relative}
+  .badge{position:absolute;right:-10%;bottom:-4%;width:40%;aspect-ratio:1;border-radius:50%;overflow:hidden;border:3px solid #fff;background:#eee}
+  .badge img{width:100%;height:100%;object-fit:cover;display:block}
+  .name{font-weight:600;font-size:15px;margin-top:10px}
+  .name.tbd{font-weight:400;color:var(--muted)}
+  .sex{color:var(--muted);font-size:12.5px;margin-top:2px}
+  .note{color:var(--muted);font-size:12px;line-height:1.4;margin-top:6px}
+  hr{border:0;border-top:1px solid #e5e5e7;margin:8px 0 36px}
+  .grid{display:flex;flex-wrap:wrap;justify-content:center;gap:28px clamp(24px,6vw,56px)}
+  .classics .name{font-size:12.5px}
+  .classics{gap:20px clamp(12px,4vw,40px)}
+  .classics .bird{width:clamp(70px,18vw,100px)}
+  .pic.empty{display:flex;align-items:center;justify-content:center;color:#a1a1a6;font-size:11px;line-height:1.3;border:1.5px dashed #d2d2d7;background:#fafafa}
+  .pair{display:flex;gap:clamp(58px,15vw,80px);position:relative}
+  .pair::before{content:"";position:absolute;top:calc(clamp(88px,24vw,128px)/2);left:25%;right:25%;border-top:1.5px solid var(--line)}
+  .crown{position:absolute;width:44%;top:-20%;left:50%;transform:translateX(-50%) rotate(-10deg);z-index:2;overflow:visible}
+  .pairbadge{position:absolute;left:50%;top:calc(clamp(88px,24vw,128px)/2);transform:translate(-50%,-50%);width:clamp(48px,13vw,64px);aspect-ratio:1;border-radius:50%;overflow:hidden;border:3px solid #fff;z-index:2;background:#eee}
+  .pairbadge img{width:100%;height:100%;object-fit:cover;display:block}
+  .hero{display:block;width:100%;aspect-ratio:2.4;object-fit:cover;border-radius:12px;margin:0 0 20px}
+  .row.wide{gap:clamp(100px,25vw,140px)}
+  .badge.left{right:auto;left:-10%;bottom:auto;top:-4%}
+  .ripple{display:flex;gap:.01em}
+  .ripple span{display:inline-block;animation:ripple 2.6s ease-in-out infinite;animation-delay:calc(var(--i) * 90ms)}
+  @keyframes ripple{0%,40%,100%{transform:translateY(0) scale(1)}12%{transform:translateY(-.32em) scale(1.18)}24%{transform:translateY(.06em) scale(.96)}}
+  @media (prefers-reduced-motion:reduce){.ripple span{animation:none}}
+  .col{display:flex;flex-direction:column;align-items:center;gap:48px}
+  .grid{align-items:flex-start}
+  .key{display:flex;justify-content:center;gap:20px;color:var(--muted);font-size:12px;margin:0 0 28px}
+  .key svg{vertical-align:middle;margin-right:6px}
+  .fine{max-width:560px;margin:40px auto 0;color:var(--muted);font-size:12.5px;line-height:1.5;text-align:center}
+</style>
+</head>
+<body>
+<main>
+  <img class="hero" src="img/header.jpg" alt="Four pigeons lined up on the balcony railing">
+  <h1 class="ripple" aria-label="Sqwaaa"><span style="--i:0">S</span><span style="--i:1">q</span><span style="--i:2">w</span><span style="--i:3">a</span><span style="--i:4">a</span><span style="--i:5">a</span></h1>
+  <p class="sub">Pigeon family tree · Brooklyn, 2026</p>
+
+  <div class="key">
+    <span><svg width="28" height="4"><line x1="0" y1="2" x2="28" y2="2" stroke="#bdbdc2" stroke-width="1.5"/></svg>Likely</span>
+    <span><svg width="28" height="4"><line x1="0" y1="2" x2="28" y2="2" stroke="#bdbdc2" stroke-width="1.5" stroke-dasharray="4 5"/></svg>Guess</span>
+  </div>
+
+  <div class="tree" id="tree">
+    <svg class="wires" id="wires"></svg>
+
+    <div class="row">
+      <div class="bird" id="brian">
+        <div class="pic"><img src="img/brian.jpg" alt="Brian"></div>
+        <div class="name">Brian</div>
+        <div class="sex">Male, probably</div>
+        <div class="note">Older. Breanna's dad, or her big brother</div>
+      </div>
+      <div class="bird" id="lady">
+        <div class="pic"><img src="img/lady.jpg" alt="Gilda"></div>
+        <div class="name">Gilda</div>
+        <div class="sex">Female, probably</div>
+        <div class="note">Brian's mate, maybe. Breanna's mom?</div>
+      </div>
+    </div>
+
+    <div class="row wide">
+      <div class="pairbadge"><img src="img/breanna-griffen.jpg" alt="Breanna and Griffen together"></div>
+      <div class="bird" id="breanna">
+        <div class="picwrap">
+          <div class="pic"><img src="img/breanna.jpg" alt="Breanna"></div>
+          <svg class="crown" viewBox="0 0 64 44" aria-hidden="true"><path d="M4 40 L8 12 L22 26 L32 4 L42 26 L56 12 L60 40 Z" fill="#f0bf3c" stroke="#b88a14" stroke-width="2.5" stroke-linejoin="round"/><circle cx="8" cy="11" r="4" fill="#f0bf3c" stroke="#b88a14" stroke-width="2"/><circle cx="32" cy="4" r="4" fill="#f0bf3c" stroke="#b88a14" stroke-width="2"/><circle cx="56" cy="11" r="4" fill="#f0bf3c" stroke="#b88a14" stroke-width="2"/></svg>
+        </div>
+        <div class="name">Breanna</div>
+        <div class="sex">Female, confirmed</div>
+      </div>
+      <div class="bird" id="griffen">
+        <div class="picwrap">
+          <div class="pic"><img src="img/griffen.jpg" alt="Griffen"></div>
+          <div class="badge"><img src="img/griffen-foot.jpg" alt="Griffen's foot with string on one toe"></div>
+        </div>
+        <div class="name">Griffen</div>
+        <div class="sex">Male, confirmed</div>
+        <div class="note">ID tip: loose string on one toe</div>
+      </div>
+    </div>
+
+    <div class="row" style="margin-bottom:0">
+      <div class="bird" id="lucille">
+        <div class="picwrap">
+          <div class="pic"><img src="img/lucille.jpg" alt="Lucille"></div>
+          <div class="badge"><img src="img/lucille-mom.jpg" alt="Lucille next to Breanna"></div>
+        </div>
+        <div class="name">Lucille</div>
+        <div class="sex">Female, likely</div>
+        <div class="note">Spring brood. Hangs out with mom</div>
+      </div>
+      <div class="bird" id="wilburt">
+        <div class="picwrap">
+          <div class="pic"><img src="img/wilburt.jpg" alt="Wilburt"></div>
+          <div class="badge left"><img src="img/wilburt-feed.jpg" alt="Wilburt begging from Breanna"></div>
+        </div>
+        <div class="name">Wilburt</div>
+        <div class="sex">Male, likely</div>
+        <div class="note">Summer brood, about 3 months. Caught begging from mom</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="height:16px"></div>
+  <p class="fine" style="margin-top:32px">How the sexes were guessed: red color is carried on the sex chromosome, and a mother passes hers only to sons. With a red mom and a gray dad, red babies are male and gray babies are female. It also means Breanna's father had to be red.</p>
+  <div style="height:24px"></div>
+  <hr>
+  <h2>Unaffiliated or unknown</h2>
+  <div class="grid tree" id="tree2">
+    <svg class="wires" id="wires2"></svg>
+    <div class="bird">
+      <div class="pic"><img src="img/rocky.jpg" alt="Rocky"></div>
+      <div class="name">Rocky</div>
+      <div class="sex">Sex unknown</div>
+    </div>
+    <div class="bird">
+      <div class="pic"><img src="img/jankfoot.jpg" alt="Jank Foot"></div>
+      <div class="name">Jank Foot</div>
+      <div class="sex">Sex unknown</div>
+      <div class="note">Checker with a curled-up foot. Hence the name</div>
+    </div>
+    <div class="bird">
+      <div class="pic empty">Photo<br>coming</div>
+      <div class="name">Hucklebee</div>
+      <div class="sex">Sex unknown</div>
+    </div>
+    <div class="pair">
+      <div class="pairbadge"><img src="img/julian-rebecca.jpg" alt="Julian and Rebecca together"></div>
+      <div class="bird">
+        <div class="pic"><img src="img/julian.jpg" alt="Julian"></div>
+        <div class="name">Julian</div>
+        <div class="sex">Male, probably</div>
+        <div class="note">The checkered one, ID unconfirmed</div>
+      </div>
+      <div class="bird">
+        <div class="pic"><img src="img/rebecca.jpg" alt="Rebecca"></div>
+        <div class="name">Rebecca</div>
+        <div class="sex">Female, probably</div>
+        <div class="note">The darker one, ID unconfirmed</div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="bird" id="spotty">
+        <div class="pic"><img src="img/spotty.jpg" alt="Black and white pied pigeon"></div>
+        <div class="name tbd">Unnamed</div>
+        <div class="sex">Sex unknown</div>
+        <div class="note">Adult, lots of white genes. Maybe the young one's parent</div>
+      </div>
+      <div class="bird" id="patches">
+        <div class="pic"><img src="img/patches.jpg" alt="Young white pigeon with black patches"></div>
+        <div class="name tbd">Unnamed</div>
+        <div class="sex">Sex unknown</div>
+        <div class="note">Young. Maybe the spotty adult's kid</div>
+      </div>
+    </div>
+  </div>
+
+  <hr style="margin-top:56px">
+  <h2>The anonymous Brooklyn classics</h2>
+  <p class="fine" style="margin:-8px auto 24px">Dark checker, the black beanie of pigeon fashion. Everyone in Bushwick owns one and nobody can tell anyone apart. One of them is Griffen, check the toe.</p>
+  <div class="grid classics">
+    <div class="bird"><div class="pic"><img src="img/classic1.jpg" alt="Checkered gray pigeon"></div><div class="name tbd">Anonymous</div><div class="note">Here for the rice</div></div>
+    <div class="bird"><div class="pic"><img src="img/classic2.jpg" alt="Checkered gray pigeon"></div><div class="name tbd">Anonymous</div><div class="note">Could be anyone</div></div>
+    <div class="bird"><div class="pic"><img src="img/classic3.jpg" alt="Checkered gray pigeon"></div><div class="name tbd">Anonymous</div><div class="note">Possibly Griffen. Unverified</div></div>
+    <div class="bird"><div class="pic"><img src="img/classic4.jpg" alt="Checkered gray pigeon"></div><div class="name tbd">Anonymous</div><div class="note">Ate, left, no comment</div></div>
+  </div>
+
+  <hr style="margin-top:56px">
+  <h2>Honorable mentions</h2>
+  <p class="fine" style="margin:-8px auto 24px">Non-pigeon guest stars of the balcony.</p>
+  <div class="grid classics">
+    <div class="bird"><div class="picwrap"><div class="pic"><img src="img/bluejay.jpg" alt="Blue jay"></div><div class="badge"><img src="img/bluejay-back.jpg" alt="Blue jay from behind"></div></div><div class="name">Blue jay</div><div class="note">Loud. Probably judging</div></div>
+    <div class="bird"><div class="pic"><img src="img/hawk.jpg" alt="Hawk on a rooftop corner"></div><div class="name">Hawk</div><div class="note">Not a friend of the flock</div></div>
+    <div class="bird"><div class="pic"><img src="img/dove.jpg" alt="Mourning dove"></div><div class="name">Mourning dove</div><div class="note">The pigeons' shy cousin</div></div>
+  </div>
+
+</main>
+
+<script>
+const couples=[['brian','lady',true],['breanna','griffen',false]];
+const links=[['brian','lady','breanna',true],['breanna','griffen','lucille',false],['breanna','griffen','wilburt',false]];
+function draw(){
+  const T=document.getElementById('tree').getBoundingClientRect(),svg=document.getElementById('wires');
+  const p=id=>{const r=document.querySelector('#'+id+' .pic').getBoundingClientRect();
+    return{cx:r.left+r.width/2-T.left,cy:r.top+r.height/2-T.top,top:r.top-T.top,l:r.left-T.left,r:r.right-T.left}};
+  let d='';const add=(s,g)=>d+=`<path d="${s}" class="${g?'guess':''}"/>`;
+  couples.forEach(([a,b,g])=>{const A=p(a),B=p(b);add(`M${A.r},${A.cy}H${B.l}`,g)});
+  links.forEach(([a,b,c,g])=>{const A=p(a),B=p(b),C=p(c);const mx=(A.r+B.l)/2,y=C.top-24;
+    add(`M${mx},${A.cy}V${y}H${C.cx}V${C.top-6}`,g)});
+  svg.innerHTML=d;
+  const T2=document.getElementById('tree2').getBoundingClientRect();
+  const q=id=>{const r=document.querySelector('#'+id+' .pic').getBoundingClientRect();return{cx:r.left+r.width/2-T2.left,top:r.top-T2.top}};
+  const S=q('spotty'),P=q('patches');
+  const sb=document.querySelector('#spotty').getBoundingClientRect().bottom-T2.top;
+  document.getElementById('wires2').innerHTML=`<path class="guess" d="M${S.cx},${sb+8}V${P.top-8}"/>`;
+}
+addEventListener('load',draw);addEventListener('resize',draw);
+document.querySelectorAll('img').forEach(i=>i.addEventListener('load',draw));
+</script>
+</body>
+</html>
