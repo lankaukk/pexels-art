@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
 <title>Flowers · McKayla Lankau</title>
 <meta name="description" content="An ASCII Venus flytrap that grows as you scroll, and catches a bug.">
 <style>
@@ -476,7 +477,23 @@
     // the soil darkens as the rain soaks in
     const wet = between(shown, INTRO * 0.45, INTRO);
     const soilColor = mix(SOIL, [62, 44, 30], wet * 0.6);
-    if (sink < 11.5) for (const d of soil) put(d.ch, d.x, d.y, `rgb(${soilColor})`);
+    // the soil thins out toward the bottom of the window, down to plain black,
+    // so it blends into the browser's own bar there (Safari on phones floats
+    // its address bar over a strip of the page's background). Only the number
+    // of characters thins, not their color, and the thinning stays below the
+    // horizon, which keeps its full strength
+    if (sink < 11.5) {
+      const [, horizonY] = toScreen(0, GROUND);
+      const below = innerHeight - horizonY; // how much soil is on screen
+      const fadeFrom = horizonY + below * 0.3; // the top 30% stays full
+      for (const d of soil) {
+        const [, sy] = toScreen(d.x, d.y);
+        if (sy >= innerHeight) continue;
+        const keep = sy <= fadeFrom ? 1 : 1 - (sy - fadeFrom) / (innerHeight - fadeFrom);
+        if ((d.x * 7 + d.y * 13) % 10 >= keep * 10) continue;
+        put(d.ch, d.x, d.y, `rgb(${soilColor})`);
+      }
+    }
 
     // the seedling comes up in the middle of the soil; as the plant grows tall
     // and leans right, its base drifts left to make room
