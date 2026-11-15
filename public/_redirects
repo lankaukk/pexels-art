@@ -5,6 +5,7 @@
 /notapipe      /index.html     200
 /notapipe/*    /:splat         200
 
-# the balcony pigeon family tree is a plain page in public/pigeons; add the
-# trailing slash so its img/ paths resolve
-/pigeons       /pigeons/       301
+# the balcony pigeon family tree is a plain page in public/pigeons, shown at
+# /pigeons without a trailing slash (/pigeons/ works too); its images use full
+# /pigeons/img/ paths, so either address finds them
+/pigeons       /pigeons/index.html   200!

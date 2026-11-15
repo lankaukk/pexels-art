@@ -9,7 +9,9 @@ module.exports = function (app) {
   // (`npm start` otherwise only serves public files under /notapipe).
   const express = require("express");
   app.get("/pigeons", (req, res, next) =>
-    req.path === "/pigeons" ? res.redirect(301, "/pigeons/") : next()
+    req.path === "/pigeons"
+      ? res.sendFile(path.join(__dirname, "../public/pigeons/index.html"))
+      : next()
   );
   app.use("/pigeons", express.static(path.join(__dirname, "../public/pigeons")));
 
