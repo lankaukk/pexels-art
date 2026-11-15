@@ -5,6 +5,14 @@ const path = require("path");
 const { handler } = require("../netlify/functions/pexels");
 
 module.exports = function (app) {
+  // Serve the pigeon family tree at /pigeons like the live site does
+  // (`npm start` otherwise only serves public files under /notapipe).
+  const express = require("express");
+  app.get("/pigeons", (req, res, next) =>
+    req.path === "/pigeons" ? res.redirect(301, "/pigeons/") : next()
+  );
+  app.use("/pigeons", express.static(path.join(__dirname, "../public/pigeons")));
+
   app.get("/.netlify/functions/pexels", async (req, res) => {
     const result = await handler({ queryStringParameters: req.query });
     res.status(result.statusCode).set(result.headers || {}).send(result.body);
