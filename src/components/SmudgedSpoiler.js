@@ -522,7 +522,7 @@ const SmudgedSpoiler = ({ text }) => {
     else setRevealed(true);
   };
 
-  // the essay's read-aloud (ListenToEssay.js) asks for the reveal as it reaches
+  // the essay's read-aloud (EssayBar.js) asks for the reveal as it reaches
   // the spoiler
   const revealRef = useRef(reveal);
   revealRef.current = reveal;

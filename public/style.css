@@ -123,10 +123,10 @@ body {
     display: inline-flex;
     align-items: baseline;
     max-width: 100%;
-    /* pulls back the input's text-indent and right padding, so they only make
-       room for strokes and the cursor, and centering goes by the text itself */
-    margin-left: -0.22em;
-    margin-right: -0.1em;
+    /* the line starts one word space after "une" (the caption's gap); the
+       typed words sit just inside it */
+    margin-left: 0;
+    margin-right: 0;
     transition: width 160ms ease-out;
 }
 
@@ -141,6 +141,21 @@ body {
     display: inline-block;
     flex: none;
     max-width: calc(100vw - 6rem);
+    /* room for the Enter arrow inside the box (ENTER_ROOM in PicSearchPaginate.js) */
+    padding-right: 0.75em;
+}
+
+.blank::after {
+    content: "";
+    position: absolute;
+    /* a faint writing line under the words, fill-in-the-blank style; it runs
+       the box's full width, so the Enter arrow sits at its right end */
+    left: 0;
+    right: 0;
+    bottom: 0.3em;
+    /* the same thin grey as the essay bar's rules */
+    border-bottom: 1px solid #dcdcdc;
+    pointer-events: none;
 }
 
 /* the example word, faint, starting right where the cursor sits */
@@ -207,7 +222,7 @@ body {
    bottom sits on the baseline (0.42em above the blank's bottom, less padding) */
 .enter {
     position: absolute;
-    left: calc(100% - 0.05em);
+    right: 0.12em;
     bottom: 0.32em;
     /* buttons don't inherit font size, which the arrow's em sizing relies on */
     font-size: inherit;
@@ -579,7 +594,8 @@ body {
 /* big: the whole word swells from its center, holds a beat, then settles */
 .effect-big {
     display: inline-block;
-    transform-origin: 50% 50%;
+    /* leans from the baseline, so the letters stay on the line */
+    transform-origin: 50% 100%;
     animation: big 1.8s ease-in-out 1;
 }
 
@@ -591,14 +607,15 @@ body {
     animation-name: big-again;
 }
 
+/* "Ha." leans over, like a laugh, then straightens up */
 @keyframes big {
-    0%, 100% { transform: scale(1); }
-    25%, 55% { transform: scale(1.7); }
+    0%, 100% { transform: none; }
+    25%, 55% { transform: skewX(-16deg); }
 }
 
 @keyframes big-again {
-    0%, 100% { transform: scale(1); }
-    25%, 55% { transform: scale(1.7); }
+    0%, 100% { transform: none; }
+    25%, 55% { transform: skewX(-16deg); }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -651,223 +668,6 @@ body {
     }
 }
 
-/* read the essay aloud: a quiet button after the date, that becomes a pause
-   button with a progress line and the time while it speaks */
-.listen {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.6rem;
-    margin-top: 0.6rem;
-    font-size: 0.8rem;
-    color: #8a8a8a;
-}
-
-.listen button {
-    padding: 0;
-    border: 0;
-    background: none;
-    color: inherit;
-    font: inherit;
-    cursor: pointer;
-}
-
-.listen-button {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45em;
-}
-
-.listen-button:hover,
-.listen-button:focus-visible,
-.listen-stop:hover,
-.listen-stop:focus-visible {
-    color: #4a4a4a;
-}
-
-.listen-icon {
-    font-size: 0.7em;
-}
-
-.listen-progress {
-    position: relative;
-    flex: 1 1 6rem;
-    max-width: 12rem;
-    height: 2px;
-    border-radius: 1px;
-    background: #e2e2e2;
-    overflow: hidden;
-}
-
-.listen-progress-fill {
-    position: absolute;
-    inset: 0 auto 0 0;
-    background: #8a8a8a;
-    transition: width 250ms linear;
-}
-
-.listen-time {
-    font-variant-numeric: tabular-nums;
-}
-
-.listen-stop {
-    font-size: 0.7em;
-}
-
-/* the listen button is a full-width black bar under the essay; while it
-   speaks, the progress line, time and stop sit on a row beneath it */
-.listen {
-    margin-top: 1.4rem;
-}
-
-.listen .listen-button {
-    flex: 1 1 100%;
-    justify-content: center;
-    padding: 0.75rem 1rem;
-    border-radius: 6px;
-    background: #1a1a1a;
-    color: #ffffff;
-    font-size: 0.85rem;
-    font-weight: 400;
-}
-
-.listen .listen-button:hover,
-.listen .listen-button:focus-visible {
-    background: #333333;
-    color: #ffffff;
-}
-
-.listen .listen-button:focus-visible {
-    outline: 2px solid #1a1a1a;
-    outline-offset: 2px;
-}
-
-.listen .listen-progress {
-    max-width: none;
-}
-
-/* while listening, the whole bar is black and holds every control: pause,
-   progress, time, speed and stop */
-.listen.is-active {
-    flex-wrap: nowrap;
-    gap: 0.75rem;
-    padding: 0.55rem 0.9rem;
-    border-radius: 6px;
-    background: #1a1a1a;
-    color: #e6e6e6;
-}
-
-.listen.is-active .listen-button {
-    flex: none;
-    padding: 0.15rem 0.2rem;
-    background: none;
-}
-
-.listen.is-active .listen-button:hover,
-.listen.is-active .listen-button:focus-visible {
-    background: none;
-    color: #ffffff;
-}
-
-.listen.is-active .listen-button:focus-visible,
-.listen.is-active .listen-rate:focus-visible,
-.listen.is-active .listen-stop:focus-visible {
-    outline: 1px solid #ffffff;
-    outline-offset: 2px;
-}
-
-.listen.is-active .listen-progress {
-    flex: 1 1 auto;
-    background: rgba(255, 255, 255, 0.22);
-}
-
-.listen.is-active .listen-progress-fill {
-    background: #ffffff;
-}
-
-.listen.is-active .listen-time {
-    white-space: nowrap;
-    font-size: 0.78rem;
-}
-
-.listen-rate {
-    padding: 0.1rem 0.15rem;
-    border: 1px solid rgba(255, 255, 255, 0.35);
-    border-radius: 4px;
-    background: transparent;
-    color: inherit;
-    font: inherit;
-    font-size: 0.75rem;
-    cursor: pointer;
-}
-
-.listen-rate option {
-    color: #1a1a1a;
-}
-
-.listen.is-active .listen-stop:hover {
-    color: #ffffff;
-}
-
-/* the black bar is one fixed size whether idle or playing: the bar itself is
-   the black box, and the idle button simply fills it */
-.listen,
-.listen.is-active {
-    box-sizing: border-box;
-    flex-wrap: nowrap;
-    height: 2.75rem;
-    padding: 0 0.9rem;
-    border-radius: 6px;
-    background: #1a1a1a;
-    color: #e6e6e6;
-}
-
-.listen:not(.is-active) {
-    padding: 0;
-}
-
-.listen:not(.is-active) .listen-button {
-    flex: 1 1 100%;
-    align-self: stretch;
-    height: 100%;
-    padding: 0 1rem;
-    background: none;
-    border-radius: 6px;
-}
-
-.listen:not(.is-active):hover,
-.listen:not(.is-active):focus-within {
-    background: #333333;
-}
-
-.listen:not(.is-active) .listen-button:hover,
-.listen:not(.is-active) .listen-button:focus-visible {
-    background: none;
-}
-
-/* the play, pause and stop icons */
-.listen-svg {
-    display: block;
-    width: 0.95rem;
-    height: 0.95rem;
-    fill: currentColor;
-    flex: none;
-}
-
-.listen:not(.is-active) .listen-button {
-    gap: 0.55em;
-}
-
-.listen-stop .listen-svg {
-    width: 0.85rem;
-    height: 0.85rem;
-}
-
-.listen-stop {
-    display: inline-flex;
-    align-items: center;
-}
-
 /* nothing widens the page sideways (the spoiler's smudge canvas reaches past
    its paragraph, and on phones past the screen edge); clip, unlike hidden,
    doesn't make the page its own scroll box */
@@ -883,13 +683,13 @@ textarea.search {
     line-height: inherit;
     white-space: pre-wrap;
     overflow-wrap: break-word;
-    /* wrapped lines center under the caption, like the rest of it */
-    text-align: center;
+    /* a normal text field: the cursor and text start at the left */
+    text-align: left;
 }
 
-/* phones: "Ceci n'est pas une" on its own line and the blank centered below it,
-   so the caption doesn't jump between one and two lines as examples change */
-@media (max-width: 600px) {
+/* phones, and any window where the frame stands upright: "Ceci n'est pas une"
+   on its own line and the blank centered below it */
+@media (max-width: 600px), (orientation: portrait) {
     .title .caption {
         flex-basis: 100%;
         text-align: center;
@@ -898,4 +698,293 @@ textarea.search {
 
 .link-lead {
     white-space: nowrap;
+}
+
+/* listen, like and share: a quiet row of grey outline icons between thin grey
+   rules, under the statement's first paragraph (see EssayBar.js). While the
+   essay is read aloud it stays on screen */
+.essay-bar {
+    --bar-ink: #8a8a8a;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    min-height: 2.75rem;
+    /* 2em of room on each side (the paragraph's 1.1em margin above
+       collapses into this one, so it doesn't add to it) */
+    margin: 2em 0;
+    padding: 0 0.6rem 0 0.25rem;
+    border-top: 1px solid #dcdcdc;
+    border-bottom: 1px solid #dcdcdc;
+    background: #fff;
+    color: var(--bar-ink);
+}
+
+/* stuck to the top of the screen when scrolled past, or the bottom when
+   scrolled back above it */
+.essay-bar.is-listening {
+    position: sticky;
+    top: 0;
+    /* stuck at the bottom, it sits a little up from the edge, with white
+       below it (the shadow) so the text doesn't show underneath */
+    bottom: 1rem;
+    /* above the white fade at the bottom of the screen (.page-scrim) */
+    z-index: 6;
+}
+
+.bar-listen,
+.bar-end {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    min-width: 0;
+}
+
+.bar-listen {
+    flex: 1;
+}
+
+.bar-button {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 2.25rem;
+    padding: 0 0.4rem;
+    border: 0;
+    border-radius: 0.4rem;
+    background: none;
+    font: inherit;
+    font-size: 0.8rem;
+    color: inherit;
+    cursor: pointer;
+    transition: color 150ms ease-out;
+}
+
+.bar-button:hover,
+.bar-button:focus-visible {
+    color: #1a1a1a;
+}
+
+.bar-button:focus-visible,
+.bar-rate:focus-visible {
+    outline: 1.5px solid #1a1a1a;
+    outline-offset: 1px;
+}
+
+.bar-icon {
+    width: 1.2rem;
+    height: 1.2rem;
+    flex: none;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.essay-bar.is-stuck-bottom {
+    border-bottom-color: transparent;
+    box-shadow: 0 1rem 0 #fff;
+}
+
+/* liked: the outline heart fills pink, with a small pop */
+.bar-heart.is-liked {
+    color: #e8577e;
+}
+
+.bar-heart.is-liked .bar-icon {
+    fill: currentColor;
+    animation: heart-pop 320ms ease-out;
+}
+
+@keyframes heart-pop {
+    40% {
+        transform: scale(1.3);
+    }
+}
+
+.bar-progress {
+    position: relative;
+    /* a short line, then a clear gap before the time and speed */
+    flex: 0 1 6rem;
+    min-width: 2rem;
+    height: 1.5px;
+    margin: 0 1rem 0 0.4rem;
+    background: #dcdcdc;
+}
+
+.bar-progress-fill {
+    position: absolute;
+    inset: 0 auto 0 0;
+    background: #6b6b6b;
+    transition: width 250ms linear;
+}
+
+.bar-time {
+    /* a fixed width (room for "10:00"), so the controls after it don't
+       shift as the numbers change */
+    flex: none;
+    width: 2.8em;
+    font-size: 0.75rem;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.bar-rate {
+    /* just the speed, no dropdown arrow */
+    appearance: none;
+    -webkit-appearance: none;
+    padding: 0.2rem 0.25rem;
+    border: 0;
+    border-radius: 0.4rem;
+    background: none;
+    font: inherit;
+    font-size: 0.75rem;
+    color: inherit;
+    cursor: pointer;
+}
+
+/* the sentence being read aloud, faintly, and the word being spoken */
+::highlight(spoken-sentence) {
+    background-color: rgba(232, 87, 126, 0.08);
+}
+
+::highlight(spoken-word) {
+    background-color: rgba(232, 87, 126, 0.28);
+    color: #1a1a1a;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .bar-heart.is-liked .bar-icon {
+        animation: none;
+    }
+
+    .bar-progress-fill {
+        transition: none;
+    }
+}
+
+/* Listen's play and pause icons, stacked; the one in use fades and scales in */
+.bar-play-icons {
+    display: grid;
+    flex: none;
+}
+
+.bar-play-icons > span {
+    grid-area: 1 / 1;
+    display: flex;
+    opacity: 0;
+    transform: scale(0.6);
+    transition: opacity 180ms ease-out, transform 220ms cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+
+.bar-play-icons > span.is-shown {
+    opacity: 1;
+    transform: none;
+}
+
+/* "Listen to a robot read my diary" folds away as the controls slide in */
+.bar-label {
+    display: inline-block;
+    max-width: 16rem;
+    overflow: hidden;
+    white-space: nowrap;
+    transition: max-width 320ms ease, opacity 200ms ease-out;
+}
+
+.essay-bar.is-listening .bar-label {
+    max-width: 0;
+    opacity: 0;
+}
+
+.bar-controls {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    gap: 0.25rem;
+    min-width: 0;
+    max-width: 0;
+    overflow: hidden;
+    transition: max-width 320ms ease;
+}
+
+.essay-bar.is-listening .bar-controls {
+    max-width: 24rem;
+}
+
+/* each control drifts in from the left, one a beat after the other, and they
+   leave together */
+.bar-controls > * {
+    opacity: 0;
+    transform: translateX(-0.6rem);
+    transition: opacity 150ms ease-out, transform 150ms ease-out;
+}
+
+.essay-bar.is-listening .bar-controls > * {
+    opacity: 1;
+    transform: none;
+    transition: opacity 260ms ease-out, transform 260ms ease-out;
+    transition-delay: calc(120ms + var(--i, 0) * 50ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .bar-play-icons > span,
+    .bar-label,
+    .bar-controls,
+    .bar-controls > *,
+    .essay-bar.is-listening .bar-controls > * {
+        transition: none;
+    }
+}
+
+/* the space between the play icon and its label closes as the label folds */
+.bar-play {
+    transition: gap 320ms ease, color 150ms ease-out;
+}
+
+.essay-bar.is-listening .bar-play {
+    gap: 0;
+}
+
+/* the progress line is a slider: a taller invisible strip to grab, and a dot
+   at the current spot that shows on hover, focus or while dragging */
+.bar-progress {
+    cursor: pointer;
+    touch-action: none;
+}
+
+.bar-progress::before {
+    content: "";
+    position: absolute;
+    inset: -0.75rem 0;
+}
+
+.bar-progress:focus-visible {
+    outline: 1.5px solid #1a1a1a;
+    outline-offset: 0.5rem;
+}
+
+.bar-progress-thumb {
+    position: absolute;
+    top: 50%;
+    left: calc(var(--at, 0) * 100%);
+    width: 0.6rem;
+    height: 0.6rem;
+    border-radius: 50%;
+    background: #6b6b6b;
+    transform: translate(-50%, -50%) scale(0);
+    transition: transform 150ms ease-out;
+    pointer-events: none;
+}
+
+.bar-progress:hover .bar-progress-thumb,
+.bar-progress:focus-visible .bar-progress-thumb,
+.bar-progress:active .bar-progress-thumb {
+    transform: translate(-50%, -50%) scale(1);
+}
+
+/* while dragging, the line keeps right up with the pointer */
+.bar-progress:active .bar-progress-fill {
+    transition: none;
 }

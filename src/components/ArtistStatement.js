@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import SmudgedSpoiler from "./SmudgedSpoiler";
 import RippleText from "./RippleText";
-import ListenToEssay from "./ListenToEssay";
+import EssayBar from "./EssayBar";
 import TextEffect from "./TextEffect";
 
 const LACMA_URL = "https://collections.lacma.org/object/31931";
@@ -42,7 +42,7 @@ const ArtworkLink = ({ href, image, children }) => (
 );
 
 const RISE_REM = 5; // how far the statement rises toward the caption, at most
-const CLEARANCE_REM = 1.5; // the least space it keeps below the caption
+const CLEARANCE_REM = 2.5; // the least space it keeps below the caption
 
 // the statement starts a couple of lines up into the space below the centered
 // caption, but never closer than CLEARANCE_REM to it (short screens leave less
@@ -89,6 +89,8 @@ const ArtistStatement = () => {
       reminds me of it.
     </p>
 
+    <EssayBar />
+
     <p>
       So I made this artwork of nothing in particular. Type anything you want into this
       caption, and 144 strangers’ photographs are summoned from{" "}
@@ -125,11 +127,11 @@ const ArtistStatement = () => {
         theory
       </SiteLink>{" "}
       that Nikon’s super-zoom cameras can see things that should be hidden
-      behind the curve of the Earth, so the curve must not exist. I, for one, am
-      a round-Earther! But I was <RippleText>stunned</RippleText> to meet a flat-earther
+      behind the curve of the Earth, so the curve must not exist. I, personally, believe the
+      Earth is round. But I was <RippleText>stunned</RippleText> to meet a flat-earther
       in real life, a type of person I’d only ever heard about. Honestly, I was
       a little impressed by his commitment to not believing anything he couldn’t
-      see for himself. At the risk of sounding elitist, I really live in an
+      see for himself. At the risk of sounding elitist, I suppose I live in an
       educational bubble.
     </p>
 
@@ -177,8 +179,6 @@ const ArtistStatement = () => {
     <p className="statement-date">
       <time dateTime="2026-11-07T00:22">12:22am Sat November 07, 2026</time>
     </p>
-
-    <ListenToEssay />
   </section>
   );
 };

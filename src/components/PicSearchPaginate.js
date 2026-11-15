@@ -10,10 +10,14 @@ const TYPE_MS = 90; // per letter typed
 // PicList.js) and then be looked at
 const HOLD_MS = 5500;
 const DELETE_MS = 50; // per letter deleted
-const GAP_MS = 300; // empty blank before the next word
+const GAP_MS = 300; // empty blank before the first word
 // after someone smudges an example's artwork, the examples wait at least this
 // long past their last stroke before moving on
 const SMUDGE_HOLD_MS = 4000;
+// room inside the box, right of the text, for the Enter arrow (in em; matches
+// .blank's padding-right in style.css)
+const ENTER_ROOM = 0.75;
+const LONGEST_EXAMPLE = EXAMPLES.reduce((a, b) => (b.length > a.length ? b : a));
 
 class PicSearchPaginate extends Component {
   state = {
@@ -31,6 +35,7 @@ class PicSearchPaginate extends Component {
   entryRef = createRef();
   blankRef = createRef();
   sizerRef = createRef();
+  minSizerRef = createRef();
   inputRef = createRef();
 
   componentDidMount() {
@@ -40,6 +45,8 @@ class PicSearchPaginate extends Component {
     this.sizeBlank();
     // the script font loads after first paint and changes the text width
     if (document.fonts) document.fonts.ready.then(this.sizeBlank);
+    // the font size and portrait/landscape width change with the window
+    window.addEventListener("resize", this.sizeBlank);
   }
 
   componentDidUpdate() {
@@ -48,6 +55,7 @@ class PicSearchPaginate extends Component {
 
   componentWillUnmount() {
     clearTimeout(this.typingTimer);
+    window.removeEventListener("resize", this.sizeBlank);
   }
 
   scheduleTyping = (delay) => {
@@ -72,13 +80,15 @@ class PicSearchPaginate extends Component {
     const word = EXAMPLES[exampleIndex];
 
     if (this.deleting) {
-      if (typedLength > 0) {
+      if (typedLength > 1) {
         this.setState({ typedLength: typedLength - 1 });
         this.scheduleTyping(DELETE_MS);
       } else {
+        // the last letter turns straight into the next word's first, so the
+        // blank is never empty between examples
         this.deleting = false;
-        this.setState({ exampleIndex: (exampleIndex + 1) % EXAMPLES.length });
-        this.scheduleTyping(GAP_MS);
+        this.setState({ exampleIndex: (exampleIndex + 1) % EXAMPLES.length, typedLength: 1 });
+        this.scheduleTyping(TYPE_MS);
       }
     } else if (typedLength < word.length) {
       const finished = typedLength + 1 === word.length;
@@ -106,13 +116,16 @@ class PicSearchPaginate extends Component {
     if (!sizer || !blank || !entry || !field) return;
     const fontSize = parseFloat(getComputedStyle(sizer).fontSize);
     const caption = entry.parentElement;
-    // the widest the blank can be: the caption's own width, plus the indent and
-    // right padding that .entry's margins pull back
-    const maxWidth = parseFloat(getComputedStyle(caption).maxWidth) + 0.32 * fontSize;
-    const widthPx = Math.min(sizer.offsetWidth, maxWidth || Infinity);
+    // the widest the blank can be: the caption's own width
+    const maxWidth = parseFloat(getComputedStyle(caption).maxWidth);
+    // the line holds still at the longest example's width, and only grows
+    // for typed text longer than that. ENTER_ROOM is the arrow's space on it
+    const room = ENTER_ROOM * fontSize;
+    const minWidth = this.minSizerRef.current ? this.minSizerRef.current.offsetWidth : 0;
+    const widthPx = Math.min(Math.max(sizer.offsetWidth, minWidth), (maxWidth || Infinity) - room);
     const width = `${(widthPx / fontSize).toFixed(3)}em`;
     blank.style.width = width;
-    entry.style.width = width;
+    entry.style.width = `${((widthPx + room) / fontSize).toFixed(3)}em`;
     // as tall as its lines of text
     field.style.height = "auto";
     field.style.height = `${field.scrollHeight}px`;
@@ -173,7 +186,10 @@ class PicSearchPaginate extends Component {
           <span className="entry" ref={this.entryRef}>
             <span className="blank" ref={this.blankRef}>
               <span className="blank-sizer" ref={this.sizerRef} aria-hidden="true">
-                {takenOver ? query : example}
+                {query}
+              </span>
+              <span className="blank-sizer" ref={this.minSizerRef} aria-hidden="true">
+                {LONGEST_EXAMPLE}
               </span>
               {/* drawn beside the input instead of as its placeholder, which
                   browsers hide instantly, so it can fade out when typing starts */}
